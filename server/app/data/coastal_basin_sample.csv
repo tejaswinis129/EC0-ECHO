@@ -1,0 +1,7 @@
+neighbourhood_id,neighbourhood_name,population,area_sqkm,surface_temp_c,baseline_temp_c,impervious_surface_pct,tree_canopy_pct,park_access_pct,annual_rainfall_mm,extreme_rainfall_runoff_m3,drainage_capacity_m3,water_demand_m3_day,water_supply_m3_day,social_vulnerability_index,available_roof_area_m2,available_public_land_m2,available_road_corridor_m2,current_carbon_emissions_tco2
+CB-01,Marina Bayfront,45000,3.5,33.2,29.0,81.0,9.0,45.0,1250,260000,140000,11000,12000,0.52,85000,12000,22000,74000
+CB-02,Fisherman Flatlands,58000,4.8,35.4,29.0,76.0,7.5,24.0,1280,310000,130000,14500,13000,0.85,92000,16000,31000,98000
+CB-03,Commercial Port,18000,7.2,38.9,29.0,89.0,3.0,12.0,1220,420000,190000,22000,18000,0.68,280000,40000,55000,310000
+CB-04,Upland Terrace,64000,6.1,31.0,29.0,46.0,31.0,78.0,1310,135000,150000,15000,17000,0.22,70000,45000,24000,62000
+CB-05,Canal District,52000,3.8,36.1,29.0,74.0,12.0,36.0,1260,285000,125000,13000,12500,0.73,68000,14000,28000,81000
+CB-06,Greenridge Ridge,27000,5.0,29.8,29.0,35.0,42.0,91.0,1340,90000,120000,6200,8000,0.15,32000,60000,18000,35000

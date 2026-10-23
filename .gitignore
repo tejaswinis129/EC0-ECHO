@@ -1,0 +1,44 @@
+# Python & Environments
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Databases & Persistence
+*.db
+*.sqlite
+*.sqlite3
+server/eco_echo.db
+
+# Secrets & Environment Variables
+.env
+.env.local
+.env.production
+*.pem
+*.key
+
+# Node & Frontend
+node_modules/
+client/node_modules/
+dist/
+client/dist/
+.npm
+npm-debug.log*
+
+# System & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Internal workspace scratch
+scratch/
+.system_generated/

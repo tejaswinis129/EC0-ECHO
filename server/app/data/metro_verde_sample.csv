@@ -1,0 +1,9 @@
+neighbourhood_id,neighbourhood_name,population,area_sqkm,surface_temp_c,baseline_temp_c,impervious_surface_pct,tree_canopy_pct,park_access_pct,annual_rainfall_mm,extreme_rainfall_runoff_m3,drainage_capacity_m3,water_demand_m3_day,water_supply_m3_day,social_vulnerability_index,available_roof_area_m2,available_public_land_m2,available_road_corridor_m2,current_carbon_emissions_tco2
+NB-01,Downtown Core,84500,4.2,38.6,30.5,78.5,8.2,38.0,920,185000,120000,18500,16500,0.64,145000,18000,32000,142000
+NB-02,Industrial Harbor,32000,6.8,40.2,30.5,84.0,4.5,18.0,915,240000,135000,26000,21000,0.82,210000,35000,48000,285000
+NB-03,Westside Highlands,62000,5.5,32.1,30.5,42.0,34.0,82.0,940,95000,110000,12000,14500,0.24,65000,42000,19000,68000
+NB-04,East Riverside,78000,5.1,36.4,30.5,68.0,14.5,42.0,930,210000,105000,16500,14000,0.76,98000,28000,36000,118000
+NB-05,North Suburbs,95000,8.4,33.5,30.5,48.0,26.0,71.0,950,145000,150000,19000,20500,0.31,110000,65000,28000,88000
+NB-06,Historic South End,54000,3.9,37.8,30.5,72.0,11.0,32.0,925,160000,98000,11500,10500,0.71,76000,15000,24000,82000
+NB-07,Sunset Valley,41000,4.8,34.0,30.5,52.0,22.0,60.0,935,120000,115000,9200,10000,0.48,52000,32000,21000,59000
+NB-08,Pinecrest Heights,29000,4.0,31.2,30.5,38.0,38.0,89.0,960,78000,100000,6400,8200,0.18,38000,50000,16000,41000
