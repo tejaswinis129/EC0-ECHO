@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ConsequenceChainGraph, InterventionDefinition } from "../types";
 import { api } from "../api/client";
 import { ConsequenceGraph } from "../components/ConsequenceGraph";
-import { GitFork, RefreshCw, Sliders, Layers } from "lucide-react";
+import { Sliders, RefreshCw, Layers } from "lucide-react";
 
 interface ConsequenceChainPageProps {
   initialInterventionId?: string;
@@ -63,49 +63,58 @@ export const ConsequenceChainPage: React.FC<ConsequenceChainPageProps> = ({
 
   return (
     <div>
+      {/* Page Header */}
       <div className="page-header">
-        <div>
-          <h1 className="page-title">Consequence Chain Explorer</h1>
-          <p className="page-description">
-            ECO-ECHO Signature Innovation: Trace causal ripple effects, water and maintenance trade-offs, equity shifts, and climate stress mitigations.
+        <div className="page-header-text">
+          <h1>Consequence Chain Explorer</h1>
+          <p>
+            ECO-ECHO Signature Feature: Trace direct physical benefits, life-cycle operational costs, water consumption
+            trade-offs, social equity dynamics, and climate shock vulnerabilities.
           </p>
         </div>
       </div>
 
-      {/* Control Studio */}
+      {/* Compact Interactive Parameters Panel */}
       <div className="card" style={{ marginBottom: "24px" }}>
         <div className="card-header">
-          <div className="card-title">
-            <Sliders size={18} color="var(--primary-700)" />
-            <span>Interactive Chain Parameters</span>
+          <div className="card-title-group">
+            <Sliders size={18} color="var(--forest-green)" />
+            <div className="card-title">Intervention & Simulation Parameters</div>
           </div>
+          {currentIntervention && (
+            <span className="badge badge-neutral">
+              Category: {currentIntervention.category.replace(/_/g, " ")}
+            </span>
+          )}
         </div>
 
-        <div className="grid-3">
+        <div className="grid-cols-3" style={{ marginBottom: 0 }}>
           <div>
-            <label className="form-label">Select Urban Intervention</label>
+            <label className="form-label">Urban Intervention Strategy</label>
             <select
-              className="form-select"
+              className="form-control"
               value={selectedInterventionId}
               onChange={(e) => setSelectedInterventionId(e.target.value)}
             >
               {interventions.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.name} ({item.category})
+                  {item.name}
                 </option>
               ))}
             </select>
             {currentIntervention && (
-              <div style={{ fontSize: "11px", color: "var(--slate-500)", marginTop: "6px" }}>
-                Capital: ${currentIntervention.capital_cost_per_unit}/unit | O&M: ${currentIntervention.annual_maintenance_per_unit}/yr
+              <div style={{ fontSize: "11.5px", color: "var(--text-secondary)", marginTop: "6px" }}>
+                Capital: ${currentIntervention.capital_cost_per_unit}/unit • O&M: ${currentIntervention.annual_maintenance_per_unit}/yr
               </div>
             )}
           </div>
 
           <div>
-            <div className="form-label" style={{ display: "flex", justifyContent: "space-between" }}>
+            <div className="form-label-row">
               <span>Deployment Scale ({currentIntervention?.unit_label || "units"})</span>
-              <span style={{ fontWeight: 700 }}>{unitsDeployed.toLocaleString()}</span>
+              <span className="tabular-nums" style={{ fontWeight: 700, color: "var(--forest-green)" }}>
+                {unitsDeployed.toLocaleString()}
+              </span>
             </div>
             <input
               type="range"
@@ -114,18 +123,17 @@ export const ConsequenceChainPage: React.FC<ConsequenceChainPageProps> = ({
               step="50"
               value={unitsDeployed}
               onChange={(e) => setUnitsDeployed(parseInt(e.target.value))}
-              className="range-slider"
-              style={{ width: "100%" }}
+              className="eco-slider"
             />
-            <div style={{ fontSize: "11px", color: "var(--slate-500)", marginTop: "4px" }}>
-              Total Surface Footprint: ~{(unitsDeployed * (currentIntervention?.space_consumed_m2_per_unit || 1)).toLocaleString()} m²
+            <div style={{ fontSize: "11.5px", color: "var(--text-secondary)", marginTop: "6px" }}>
+              Surface Footprint: ~{(unitsDeployed * (currentIntervention?.space_consumed_m2_per_unit || 1)).toLocaleString()} m²
             </div>
           </div>
 
           <div>
             <label className="form-label">Active Scenario Condition</label>
             <select
-              className="form-select"
+              className="form-control"
               value={activeScenario}
               onChange={(e) => setActiveScenario(e.target.value)}
             >
@@ -134,8 +142,8 @@ export const ConsequenceChainPage: React.FC<ConsequenceChainPageProps> = ({
               <option value="extreme_rainfall">100-Year Cloudburst (+45% Runoff)</option>
               <option value="budget_cut">Fiscal Austerity Shock (-35% Budget)</option>
             </select>
-            <div style={{ fontSize: "11px", color: "var(--slate-500)", marginTop: "6px" }}>
-              Updates the scenario risk node and dynamic mitigation protocols.
+            <div style={{ fontSize: "11.5px", color: "var(--text-secondary)", marginTop: "6px" }}>
+              Simulates downstream stress and triggers mitigation safeguards.
             </div>
           </div>
         </div>
@@ -145,8 +153,8 @@ export const ConsequenceChainPage: React.FC<ConsequenceChainPageProps> = ({
       {graph ? (
         <ConsequenceGraph graph={graph} />
       ) : (
-        <div style={{ padding: "40px", textAlign: "center", color: "var(--slate-500)" }}>
-          <RefreshCw size={24} className="spin" style={{ margin: "0 auto 12px auto" }} />
+        <div className="card" style={{ padding: "60px 20px", textAlign: "center", color: "var(--text-secondary)" }}>
+          <RefreshCw size={24} style={{ margin: "0 auto 12px auto", animation: "spin 1s linear infinite" }} />
           <div>Synthesizing causal consequence graph...</div>
         </div>
       )}

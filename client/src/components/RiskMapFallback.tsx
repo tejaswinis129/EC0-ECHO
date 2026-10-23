@@ -16,10 +16,10 @@ export const RiskMapFallback: React.FC<RiskMapFallbackProps> = ({
   const [metricView, setMetricView] = useState<"composite" | "heat" | "flood" | "water">("composite");
 
   const getColor = (score: number) => {
-    if (score >= 75) return "#e11d48"; // severe
-    if (score >= 50) return "#d97706"; // elevated
-    if (score >= 30) return "#0284c7"; // moderate
-    return "#059669"; // low
+    if (score >= 70) return "var(--risk-severe)"; // severe (#B94B42)
+    if (score >= 50) return "var(--risk-elevated)"; // elevated (#B66A36)
+    if (score >= 35) return "var(--info-blue)"; // moderate (#397C9B)
+    return "var(--risk-moderate)"; // low (#2F7D55)
   };
 
   const selectedScore = scores.find((s) => s.neighbourhood_id === selectedId) || scores[0];

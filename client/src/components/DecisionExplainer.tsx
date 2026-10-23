@@ -1,6 +1,6 @@
 import React from "react";
 import { DecisionExplanation } from "../types";
-import { Bot, CheckCircle, AlertTriangle, HelpCircle, ClipboardList, Shield } from "lucide-react";
+import { Sparkles, CheckCircle, AlertTriangle, ClipboardList, Shield } from "lucide-react";
 
 interface DecisionExplainerProps {
   explanation: DecisionExplanation;
@@ -14,27 +14,28 @@ export const DecisionExplainer: React.FC<DecisionExplainerProps> = ({
   isLoading,
 }) => {
   return (
-    <div className="card" style={{ borderLeft: "5px solid var(--primary-600)" }}>
+    <div className="card" style={{ borderLeft: "4px solid var(--forest-green)" }}>
       <div className="card-header">
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div
             style={{
               width: "32px",
               height: "32px",
-              borderRadius: "8px",
-              background: "var(--primary-100)",
+              borderRadius: "var(--radius-button)",
+              background: "var(--warm-ivory)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "var(--primary-800)",
+              color: "var(--forest-green)",
+              border: "1px solid var(--border-subtle)",
             }}
           >
-            <Bot size={18} />
+            <Sparkles size={16} />
           </div>
           <div>
-            <div className="card-title">AI Decision Explainer</div>
-            <div style={{ fontSize: "11px", color: "var(--slate-500)" }}>
-              Provider: {explanation.provider} {explanation.is_fallback ? "(Deterministic Fallback Engine)" : "(Cloud Inference)"}
+            <div className="card-title">Decision Rationale & Trade-off Explainer</div>
+            <div style={{ fontSize: "11px", color: "var(--text-secondary)" }}>
+              Provider: {explanation.provider} {explanation.is_fallback ? "(Deterministic Reasoning Engine)" : "(LLM Cloud Engine)"}
             </div>
           </div>
         </div>
@@ -46,37 +47,48 @@ export const DecisionExplainer: React.FC<DecisionExplainerProps> = ({
         )}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         {/* Executive Summary */}
         <div
           style={{
-            background: "var(--slate-50)",
+            background: "var(--warm-ivory)",
             padding: "16px",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--slate-200)",
+            borderRadius: "var(--radius-button)",
+            border: "1px solid var(--border-subtle)",
             fontSize: "13px",
-            color: "var(--slate-800)",
-            lineHeight: 1.7,
+            color: "var(--text-primary)",
+            lineHeight: 1.6,
           }}
         >
-          <div style={{ fontWeight: 700, color: "var(--slate-900)", marginBottom: "4px" }}>
-            EXECUTIVE SYNTHESIS
+          <div style={{ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--forest-green)", marginBottom: "4px" }}>
+            Executive Synthesis
           </div>
           {explanation.executive_summary}
         </div>
 
-        <div className="grid-2">
+        <div className="grid-cols-2" style={{ marginBottom: 0 }}>
           {/* Why Selected & Constraints */}
           <div>
-            <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--slate-900)", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
-              <CheckCircle size={15} color="var(--primary-600)" />
-              Rationale & Constraint Dynamics
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <CheckCircle size={15} color="var(--risk-moderate)" />
+              Rationale & Constraints
             </div>
-            <div style={{ fontSize: "12px", color: "var(--slate-700)", lineHeight: 1.6, whiteSpace: "pre-line" }}>
+            <div style={{ fontSize: "12.5px", color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-line" }}>
               {explanation.why_selected}
             </div>
 
-            <div style={{ marginTop: "12px", fontSize: "12px", color: "var(--slate-600)", background: "#f8fafc", padding: "12px", borderRadius: "6px", border: "1px solid #e2e8f0", whiteSpace: "pre-line" }}>
+            <div
+              style={{
+                marginTop: "12px",
+                fontSize: "12px",
+                color: "var(--text-secondary)",
+                background: "var(--warm-ivory)",
+                padding: "12px",
+                borderRadius: "var(--radius-button)",
+                border: "1px solid var(--border-subtle)",
+                whiteSpace: "pre-line",
+              }}
+            >
               <strong>Binding Bottlenecks:</strong>
               {"\n" + explanation.binding_constraints_analysis}
             </div>
@@ -84,15 +96,26 @@ export const DecisionExplainer: React.FC<DecisionExplainerProps> = ({
 
           {/* Equity & Vulnerabilities */}
           <div>
-            <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--slate-900)", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
-              <Shield size={15} color="#7c3aed" />
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <Shield size={15} color="var(--forest-green)" />
               Frontline District Equity
             </div>
-            <div style={{ fontSize: "12px", color: "var(--slate-700)", lineHeight: 1.6, whiteSpace: "pre-line" }}>
+            <div style={{ fontSize: "12.5px", color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-line" }}>
               {explanation.neighbourhood_equity_analysis}
             </div>
 
-            <div style={{ marginTop: "12px", fontSize: "12px", color: "#991b1b", background: "#fef2f2", padding: "12px", borderRadius: "6px", border: "1px solid #fecaca", whiteSpace: "pre-line" }}>
+            <div
+              style={{
+                marginTop: "12px",
+                fontSize: "12px",
+                color: "var(--risk-severe)",
+                background: "var(--risk-severe-bg)",
+                padding: "12px",
+                borderRadius: "var(--radius-button)",
+                border: "1px solid #f3cbc8",
+                whiteSpace: "pre-line",
+              }}
+            >
               <strong style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                 <AlertTriangle size={13} /> Critical Vulnerabilities:
               </strong>
@@ -101,21 +124,21 @@ export const DecisionExplainer: React.FC<DecisionExplainerProps> = ({
           </div>
         </div>
 
-        {/* Pre-construction Checklist */}
+        {/* Pre-construction Inquiries */}
         {explanation.priority_investigations_before_build.length > 0 && (
           <div
             style={{
-              background: "#ecfdf5",
-              border: "1px solid #a7f3d0",
-              borderRadius: "var(--radius-md)",
+              background: "var(--risk-moderate-bg)",
+              border: "1px solid #c2decb",
+              borderRadius: "var(--radius-button)",
               padding: "16px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 700, color: "var(--primary-800)", marginBottom: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12.5px", fontWeight: 700, color: "var(--forest-green)", marginBottom: "8px" }}>
               <ClipboardList size={16} />
               Recommended Planning & Engineering Inquiries Prior to Groundbreaking
             </div>
-            <ul style={{ paddingLeft: "20px", fontSize: "12px", color: "var(--primary-900)", lineHeight: 1.6 }}>
+            <ul style={{ paddingLeft: "20px", fontSize: "12px", color: "var(--forest-green)", lineHeight: 1.6 }}>
               {explanation.priority_investigations_before_build.map((item, idx) => (
                 <li key={idx} style={{ marginBottom: "4px" }}>
                   {item}

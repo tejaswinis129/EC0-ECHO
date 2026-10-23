@@ -59,9 +59,12 @@ export const App: React.FC = () => {
     await loadActiveDataset(activeDatasetId);
   };
 
+  const [availableDatasets, setAvailableDatasets] = useState<Array<{ dataset_id: string; name: string }>>([]);
+
   const loadActiveDataset = async (datasetId: string) => {
     try {
       const list = await api.listDatasets();
+      setAvailableDatasets(list.map((d) => ({ dataset_id: d.dataset_id, name: d.name })));
       const meta = list.find((d) => d.dataset_id === datasetId);
       if (meta) setMetadata(meta);
 
@@ -94,7 +97,9 @@ export const App: React.FC = () => {
     <Layout
       currentTab={currentTab}
       onSelectTab={setCurrentTab}
-      activeDatasetName={metadata?.name || "Metro Verde Urban Resilience"}
+      activeDatasetId={activeDatasetId}
+      onSelectDataset={setActiveDatasetId}
+      availableDatasets={availableDatasets}
       backendOnline={backendOnline}
     >
       {currentTab === "overview" && (

@@ -8,9 +8,10 @@ import {
   CheckCircle2,
   Database,
   Hash,
-  ExternalLink,
   Printer,
   FileSpreadsheet,
+  ShieldCheck,
+  Calendar,
 } from "lucide-react";
 
 interface ReportsPageProps {
@@ -31,6 +32,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ activeDatasetId }) => 
     try {
       const list = await api.listDecisionRecords();
       setSavedRecords(list);
+      if (list.length > 0 && !selectedRecord) {
+        loadRecordDetail(list[0].record_id);
+      }
     } catch (err) {
       console.error("Failed to load decision records", err);
     }
@@ -123,30 +127,32 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ activeDatasetId }) => 
 
   return (
     <div>
+      {/* Page Header */}
       <div className="page-header">
-        <div>
-          <h1 className="page-title">Reports & Immutable Decision Records</h1>
-          <p className="page-description">
-            Archive reproducible sustainability decisions, export CSV allocations, and generate executive print-ready audit reports.
+        <div className="page-header-text">
+          <h1>Reports & Decision Audits</h1>
+          <p>
+            Immutable decision archive with cryptographic SHA-256 validation, CSV allocation exports, and printable
+            executive audit reports for municipal council review.
           </p>
         </div>
 
         <button className="btn btn-primary" onClick={handleSaveCurrentAudit} disabled={isLoading}>
-          <Save size={16} />
-          <span>{isLoading ? "Saving Record..." : "Archive Current Decision Record"}</span>
+          <Save size={15} />
+          <span>{isLoading ? "Generating..." : "Archive Current Decision Record"}</span>
         </button>
       </div>
 
       {saveStatus && (
         <div
           style={{
-            background: "#f0fdf4",
-            border: "1px solid #a7f3d0",
-            borderRadius: "var(--radius-md)",
+            background: "var(--risk-moderate-bg)",
+            border: "1px solid #c2decb",
+            borderRadius: "var(--radius-button)",
             padding: "12px 16px",
             marginBottom: "20px",
             fontSize: "13px",
-            color: "var(--primary-800)",
+            color: "var(--forest-green)",
             display: "flex",
             alignItems: "center",
             gap: "8px",
@@ -157,21 +163,22 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ activeDatasetId }) => 
         </div>
       )}
 
-      <div className="grid-2">
+      {/* Main 2-Column Section */}
+      <div className="grid-split-1-2" style={{ alignItems: "start" }}>
         {/* Left: Saved Records Archive */}
         <div className="card">
           <div className="card-header">
-            <div className="card-title">
-              <Database size={18} color="var(--primary-700)" />
-              <span>Persistent Decision Archive (SQLite)</span>
+            <div className="card-title-group">
+              <Database size={18} color="var(--forest-green)" />
+              <div className="card-title">Decision Records</div>
             </div>
-            <span className="badge badge-slate">{savedRecords.length} records</span>
+            <span className="badge badge-neutral">{savedRecords.length} Saved</span>
           </div>
 
           {savedRecords.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "30px 10px", color: "var(--slate-500)", fontSize: "13px" }}>
+            <div style={{ textAlign: "center", padding: "40px 10px", color: "var(--text-secondary)", fontSize: "13px" }}>
               <FileText size={28} style={{ margin: "0 auto 8px auto", opacity: 0.4 }} />
-              <div>No decision records saved yet. Click "Archive Current Decision Record" above to persist an analysis snapshot.</div>
+              <div>No decision records saved yet. Click "Archive Current Decision Record" to create an audit record.</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -182,30 +189,30 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ activeDatasetId }) => 
                     key={r.record_id}
                     onClick={() => loadRecordDetail(r.record_id)}
                     style={{
-                      background: isSelected ? "var(--primary-50)" : "var(--white)",
-                      border: isSelected ? "1.5px solid var(--primary-600)" : "1px solid var(--slate-200)",
-                      borderRadius: "var(--radius-md)",
-                      padding: "14px",
+                      backgroundColor: isSelected ? "var(--warm-ivory)" : "var(--white)",
+                      border: `1px solid ${isSelected ? "var(--forest-green)" : "var(--border-subtle)"}`,
+                      borderRadius: "var(--radius-button)",
+                      padding: "12px 14px",
                       cursor: "pointer",
-                      transition: "all 0.15s ease",
+                      transition: "all var(--transition-fast)",
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                      <div style={{ fontWeight: 700, fontSize: "13px", color: "var(--slate-900)" }}>
+                      <span style={{ fontWeight: 700, fontSize: "13px", color: "var(--text-primary)" }}>
                         {r.record_id}
-                      </div>
+                      </span>
                       <span className="badge badge-green" style={{ textTransform: "capitalize" }}>
                         {r.strategy.replace("_", " ")}
                       </span>
                     </div>
 
-                    <div style={{ fontSize: "12px", color: "var(--slate-600)" }}>
+                    <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
                       Dataset: {r.dataset_name}
                     </div>
 
-                    <div style={{ fontSize: "11px", color: "var(--slate-500)", display: "flex", alignItems: "center", gap: "6px", marginTop: "6px" }}>
-                      <Hash size={12} />
-                      <span style={{ fontFamily: "var(--font-mono)" }}>{r.reproducibility_hash.substring(0, 16)}...</span>
+                    <div style={{ fontSize: "11px", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "4px", marginTop: "6px" }}>
+                      <Hash size={11} />
+                      <span style={{ fontFamily: "var(--font-mono)" }}>{r.reproducibility_hash.substring(0, 14)}...</span>
                     </div>
                   </div>
                 );
@@ -215,107 +222,132 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ activeDatasetId }) => 
         </div>
 
         {/* Right: Record Details & Export Tools */}
-        {selectedRecord ? (
-          <div className="card">
-            <div className="card-header">
-              <div>
-                <span className="badge badge-slate" style={{ marginBottom: "4px" }}>
-                  Active Record Inspector
-                </span>
-                <div className="card-title" style={{ fontSize: "18px" }}>
-                  {selectedRecord.record_id}
+        <div>
+          {selectedRecord ? (
+            <div className="card">
+              <div className="card-header">
+                <div>
+                  <span className="badge badge-neutral" style={{ marginBottom: "4px" }}>
+                    Record Detail
+                  </span>
+                  <div className="card-title" style={{ fontSize: "18px" }}>
+                    {selectedRecord.record_id}
+                  </div>
+                  <div className="card-subtitle">
+                    Created: {new Date(selectedRecord.created_at).toLocaleString()}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button className="btn btn-secondary btn-sm" onClick={handleDownloadCsv}>
+                    <FileSpreadsheet size={14} />
+                    <span>Export CSV</span>
+                  </button>
+                  <button className="btn btn-primary btn-sm" onClick={handleDownloadHtml}>
+                    <Printer size={14} />
+                    <span>View Print Report</span>
+                  </button>
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button className="btn btn-secondary btn-sm" onClick={handleDownloadCsv}>
-                  <FileSpreadsheet size={14} />
-                  <span>Export CSV</span>
-                </button>
-                <button className="btn btn-primary btn-sm" onClick={handleDownloadHtml}>
-                  <Printer size={14} />
-                  <span>View Print Audit</span>
-                </button>
+              {/* Summary Stats */}
+              <div className="grid-cols-4" style={{ marginBottom: "18px" }}>
+                <div style={{ background: "var(--warm-ivory)", padding: "12px", borderRadius: "var(--radius-button)" }}>
+                  <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase" }}>Strategy</div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--forest-green)", marginTop: "2px", textTransform: "capitalize" }}>
+                    {selectedRecord.selected_strategy.replace(/_/g, " ")}
+                  </div>
+                </div>
+
+                <div style={{ background: "var(--warm-ivory)", padding: "12px", borderRadius: "var(--radius-button)" }}>
+                  <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase" }}>Capital Cost</div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)", marginTop: "2px" }} className="tabular-nums">
+                    ${(selectedRecord.recommended_portfolio.total_capital_cost / 1000).toFixed(0)}k
+                  </div>
+                </div>
+
+                <div style={{ background: "var(--warm-ivory)", padding: "12px", borderRadius: "var(--radius-button)" }}>
+                  <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase" }}>Annual O&M</div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)", marginTop: "2px" }} className="tabular-nums">
+                    ${(selectedRecord.recommended_portfolio.total_annual_maintenance / 1000).toFixed(0)}k/yr
+                  </div>
+                </div>
+
+                <div style={{ background: "var(--warm-ivory)", padding: "12px", borderRadius: "var(--radius-button)" }}>
+                  <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase" }}>Equity Score</div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--forest-green)", marginTop: "2px" }}>
+                    {selectedRecord.recommended_portfolio.equity_score.toFixed(1)} / 100
+                  </div>
+                </div>
+              </div>
+
+              {/* SHA-256 Reproducibility Block */}
+              <div
+                style={{
+                  background: "var(--deep-green)",
+                  color: "var(--lime-accent)",
+                  padding: "14px 16px",
+                  borderRadius: "var(--radius-button)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "11.5px",
+                  wordBreak: "break-all",
+                  marginBottom: "18px",
+                  border: "1px solid rgba(184, 233, 134, 0.25)",
+                }}
+              >
+                <div style={{ color: "rgba(255, 255, 255, 0.65)", fontSize: "10.5px", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  Cryptographic SHA-256 Reproducibility Audit Hash:
+                </div>
+                {selectedRecord.reproducibility_hash}
+              </div>
+
+              {/* Consequences & Mitigations List */}
+              <div style={{ marginBottom: "18px" }}>
+                <div style={{ fontWeight: 700, fontSize: "13px", color: "var(--text-primary)", marginBottom: "6px" }}>
+                  Identified Key Consequences & Mitigations:
+                </div>
+                <ul style={{ paddingLeft: "18px", fontSize: "12.5px", color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  {selectedRecord.key_consequences_identified.map((c, i) => (
+                    <li key={i}>{c}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Disclaimer */}
+              <div
+                style={{
+                  padding: "12px 14px",
+                  background: "var(--warm-ivory)",
+                  border: "1px solid var(--border-subtle)",
+                  borderRadius: "var(--radius-button)",
+                  fontSize: "11.5px",
+                  color: "var(--text-secondary)",
+                  lineHeight: 1.5,
+                }}
+              >
+                <strong>Municipal Planning Disclaimer:</strong> {selectedRecord.disclaimer}
               </div>
             </div>
-
-            <div style={{ fontSize: "13px", color: "var(--slate-700)", lineHeight: 1.6, marginBottom: "16px" }}>
-              <div>
-                <strong>Dataset:</strong> {selectedRecord.dataset_name} ({selectedRecord.dataset_provenance})
-              </div>
-              <div>
-                <strong>Strategy:</strong> {selectedRecord.selected_strategy.replace("_", " ").toUpperCase()}
-              </div>
-              <div>
-                <strong>Capital Committed:</strong> ${selectedRecord.recommended_portfolio.total_capital_cost.toLocaleString()} USD
-              </div>
-              <div>
-                <strong>Annual Maintenance:</strong> ${selectedRecord.recommended_portfolio.total_annual_maintenance.toLocaleString()} USD/yr
-              </div>
-            </div>
-
+          ) : (
             <div
+              className="card"
               style={{
-                background: "var(--slate-900)",
-                color: "#34d399",
-                padding: "12px 14px",
-                borderRadius: "6px",
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                wordBreak: "break-all",
-                marginBottom: "16px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "60px 20px",
+                color: "var(--text-secondary)",
               }}
             >
-              <div style={{ color: "var(--slate-400)", marginBottom: "4px" }}>SHA-256 REPRODUCIBILITY AUDIT HASH:</div>
-              {selectedRecord.reproducibility_hash}
-            </div>
-
-            <div style={{ fontSize: "12px", color: "var(--slate-600)", lineHeight: 1.6 }}>
-              <div style={{ fontWeight: 700, color: "var(--slate-800)", marginBottom: "4px" }}>
-                Identified Key Consequences & Mitigations:
+              <Download size={36} style={{ marginBottom: "12px", opacity: 0.4 }} />
+              <div style={{ fontSize: "14px", fontWeight: 600 }}>Select a decision record on the left</div>
+              <div style={{ fontSize: "12px", marginTop: "4px" }}>
+                Inspect cryptographic audit hashes, download CSV allocations, or open formatted print summaries.
               </div>
-              <ul style={{ paddingLeft: "18px" }}>
-                {selectedRecord.key_consequences_identified.map((c, i) => (
-                  <li key={i}>{c}</li>
-                ))}
-              </ul>
             </div>
-
-            <div
-              style={{
-                marginTop: "20px",
-                padding: "12px",
-                background: "#fef2f2",
-                border: "1px solid #fecaca",
-                borderRadius: "6px",
-                fontSize: "11px",
-                color: "#991b1b",
-              }}
-            >
-              <strong>Disclaimer:</strong> {selectedRecord.disclaimer}
-            </div>
-          </div>
-        ) : (
-          <div
-            className="card"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "60px 20px",
-              color: "var(--slate-400)",
-            }}
-          >
-            <Download size={36} style={{ marginBottom: "12px", opacity: 0.5 }} />
-            <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--slate-600)" }}>
-              Select a decision record on the left
-            </div>
-            <div style={{ fontSize: "12px", marginTop: "4px" }}>
-              View cryptographic audit hashes, download CSV allocations, or open formatted executive HTML summaries.
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
