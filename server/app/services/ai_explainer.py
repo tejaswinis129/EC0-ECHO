@@ -14,24 +14,29 @@ class AIExplainerService:
         Attempts to call Amazon Bedrock if enabled and configured; otherwise falls back
         cleanly to the high-depth deterministic scientific explanation engine.
         """
-        if settings.USE_AWS_BEDROCK and settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
+        if settings.USE_AWS_BEDROCK:
             try:
                 bedrock_result = self._call_bedrock(req)
                 if bedrock_result:
                     return bedrock_result
             except Exception as e:
-                # Log and fallback gracefully without crashing
+                # Log and fallback gracefully to deterministic engine without crashing
                 pass
 
         return self._generate_deterministic_explanation(req)
 
     def _call_bedrock(self, req: ExplanationRequest) -> Optional[DecisionExplanation]:
-        client = boto3.client(
-            service_name="bedrock-runtime",
-            region_name=settings.AWS_REGION,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        )
+        client_kwargs: Dict[str, Any] = {
+            "service_name": "bedrock-runtime",
+            "region_name": settings.AWS_REGION,
+        }
+        if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
+            client_kwargs["aws_access_key_id"] = settings.AWS_ACCESS_KEY_ID
+            client_kwargs["aws_secret_access_key"] = settings.AWS_SECRET_ACCESS_KEY
+            if settings.AWS_SESSION_TOKEN:
+                client_kwargs["aws_session_token"] = settings.AWS_SESSION_TOKEN
+
+        client = boto3.client(**client_kwargs)
 
         prompt_system = (
             "You are the senior urban science and decision explainer for ECO-ECHO. "

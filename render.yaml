@@ -30,7 +30,6 @@ services:
     name: eco-echo-frontend
     runtime: static
     plan: free
-    region: oregon
     branch: main
     buildCommand: cd client && npm install && npm run build
     staticPublishPath: client/dist
@@ -45,4 +44,4 @@ services:
         fromService:
           type: web
           name: eco-echo-backend
-          property: url
+          property: host

@@ -133,9 +133,16 @@ class S3Service:
         try:
             session_kwargs: Dict[str, Any] = {"region_name": settings.AWS_REGION}
             if settings.AWS_PROFILE:
-                session_kwargs["profile_name"] = settings.AWS_PROFILE
-
-            session = boto3.Session(**session_kwargs)
+                try:
+                    session = boto3.Session(profile_name=settings.AWS_PROFILE, **session_kwargs)
+                except ProfileNotFound:
+                    logger.info(
+                        "AWS profile '%s' not found locally; falling back to default IAM role / container credential provider chain.",
+                        settings.AWS_PROFILE,
+                    )
+                    session = boto3.Session(region_name=settings.AWS_REGION)
+            else:
+                session = boto3.Session(region_name=settings.AWS_REGION)
 
             client_kwargs: Dict[str, Any] = {"region_name": settings.AWS_REGION}
             # Only provide explicit keys if both ID and Secret are provided

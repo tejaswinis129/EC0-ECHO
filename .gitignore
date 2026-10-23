@@ -19,6 +19,8 @@ server/eco_echo.db
 # Secrets & Environment Variables
 .env
 .env.*
+!.env.example
+!*.example
 .aws/
 credentials
 *.pem

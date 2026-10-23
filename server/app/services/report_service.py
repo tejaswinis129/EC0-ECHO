@@ -3,7 +3,7 @@ import hashlib
 import datetime
 import io
 import csv
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from ..models.decision_record import DecisionRecord
 from ..models.optimisation import AlternativePortfolio, OptimisationRequest

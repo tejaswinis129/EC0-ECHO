@@ -24,7 +24,6 @@ eco_echo.db
 # Node & frontend build caches
 client/node_modules/
 client/.vite/
-client/dist/
 
 # IDE & agent artifacts
 .gemini/

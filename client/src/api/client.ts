@@ -25,11 +25,20 @@ import {
 
 const rawApiBase = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || "").trim();
 
-const API_BASE = rawApiBase
-  ? (rawApiBase.endsWith("/api") ? rawApiBase : `${rawApiBase.replace(/\/$/, "")}/api`)
-  : (import.meta.env.PROD || (typeof window !== "undefined" && window.location.port !== "5173")
-    ? "/api"
-    : "http://localhost:8000/api");
+function resolveApiBase(): string {
+  if (!rawApiBase) {
+    return import.meta.env.PROD || (typeof window !== "undefined" && window.location.port !== "5173")
+      ? "/api"
+      : "http://localhost:8000/api";
+  }
+  let base = rawApiBase;
+  if (!base.startsWith("http://") && !base.startsWith("https://") && !base.startsWith("/")) {
+    base = `https://${base}`;
+  }
+  return base.endsWith("/api") ? base : `${base.replace(/\/$/, "")}/api`;
+}
+
+const API_BASE = resolveApiBase();
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
