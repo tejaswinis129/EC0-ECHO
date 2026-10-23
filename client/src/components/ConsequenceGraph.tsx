@@ -346,11 +346,21 @@ export const ConsequenceGraph: React.FC<ConsequenceGraphProps> = ({ graph }) => 
                             </span>
                           </div>
 
-                          <div style={{ fontSize: "13.5px", fontWeight: 700, color: "#FFFFFF", margin: "6px 0 4px 0" }}>
+                          <div style={{ fontSize: "13.5px", fontWeight: 700, color: "#FFFFFF", margin: "6px 0 4px 0", lineHeight: 1.35 }}>
                             {node.label}
                           </div>
 
-                          <div style={{ fontSize: "11.5px", color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          <div
+                            style={{
+                              fontSize: "11.5px",
+                              color: "rgba(255,255,255,0.75)",
+                              lineHeight: 1.45,
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
+                            }}
+                          >
                             {node.detailed_explanation}
                           </div>
                         </div>
@@ -364,15 +374,15 @@ export const ConsequenceGraph: React.FC<ConsequenceGraphProps> = ({ graph }) => 
         </div>
 
         {/* Right: Clean Node Detail Inspector Panel */}
-        <div style={{ position: "sticky", top: "80px" }}>
+        <div style={{ position: "sticky", top: "84px", maxHeight: "calc(100vh - 108px)", overflowY: "auto" }}>
           {selectedNode ? (
-            <div className="card">
-              <div className="card-header">
-                <div>
+            <div className="card" style={{ boxShadow: "var(--shadow-elevated)" }}>
+              <div className="card-header" style={{ alignItems: "flex-start", gap: "12px" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <span className="badge badge-neutral" style={{ marginBottom: "6px" }}>
                     Node Inspector
                   </span>
-                  <div className="card-title" style={{ fontSize: "18px" }}>
+                  <div className="card-title" style={{ fontSize: "16px", lineHeight: 1.35, wordBreak: "break-word" }}>
                     {selectedNode.label}
                   </div>
                   <div className="card-subtitle">
