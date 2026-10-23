@@ -13,6 +13,9 @@ import {
   Menu,
   X,
   ChevronDown,
+  MapPin,
+  Wallet,
+  Layers,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -44,10 +47,11 @@ export const Layout: React.FC<LayoutProps> = ({
       description: "Urban intelligence overview",
     },
     {
-      id: "data",
-      label: "Data Explorer",
-      icon: Database,
-      description: "Ingestion & spatial datasets",
+      id: "map",
+      label: "City Map",
+      icon: MapPin,
+      badge: "GIS",
+      description: "Interactive district risk map",
     },
     {
       id: "risk",
@@ -56,10 +60,23 @@ export const Layout: React.FC<LayoutProps> = ({
       description: "Multi-hazard spatial vulnerability",
     },
     {
+      id: "budget",
+      label: "Budget Planner",
+      icon: Wallet,
+      badge: "Smart",
+      description: "Capital allocation & feasibility",
+    },
+    {
       id: "optimise",
       label: "Optimisation Studio",
       icon: Sliders,
-      description: "Constrained decision solver",
+      description: "SciPy HiGHS constrained solver",
+    },
+    {
+      id: "transformation",
+      label: "Visual Transformation",
+      icon: Layers,
+      description: "Before & after sustainability visuals",
     },
     {
       id: "scenarios",
@@ -79,6 +96,12 @@ export const Layout: React.FC<LayoutProps> = ({
       label: "Reports & Audits",
       icon: FileCheck2,
       description: "Cryptographic decision records",
+    },
+    {
+      id: "data",
+      label: "Data Explorer",
+      icon: Database,
+      description: "Ingestion & spatial datasets",
     },
     {
       id: "settings",

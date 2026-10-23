@@ -16,6 +16,7 @@ import {
   ShieldAlert,
   GitFork,
   Info,
+  MapPin,
 } from "lucide-react";
 
 interface RiskAnalysisPageProps {
@@ -23,6 +24,7 @@ interface RiskAnalysisPageProps {
   riskOverview?: RiskOverview;
   onUpdateRiskOverview: (ro: RiskOverview) => void;
   onNavigateToConsequences?: (interventionId: string, units: number, neighbourhoodId?: string) => void;
+  onNavigateToMap?: (neighbourhoodId?: string) => void;
 }
 
 export const RiskAnalysisPage: React.FC<RiskAnalysisPageProps> = ({
@@ -30,6 +32,7 @@ export const RiskAnalysisPage: React.FC<RiskAnalysisPageProps> = ({
   riskOverview,
   onUpdateRiskOverview,
   onNavigateToConsequences,
+  onNavigateToMap,
 }) => {
   const [weights, setWeights] = useState<RiskWeightConfig>({
     heat_weight: 0.25,
@@ -120,6 +123,17 @@ export const RiskAnalysisPage: React.FC<RiskAnalysisPageProps> = ({
         </div>
 
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          {onNavigateToMap && (
+            <button
+              className="btn btn-secondary"
+              onClick={() => onNavigateToMap(selectedDistrictId)}
+              title="Open Interactive GIS City Map"
+            >
+              <MapPin size={15} />
+              <span>Interactive City Map</span>
+            </button>
+          )}
+
           <button
             className={`btn ${showWeightsPanel ? "btn-primary" : "btn-secondary"}`}
             onClick={() => setShowWeightsPanel(!showWeightsPanel)}
