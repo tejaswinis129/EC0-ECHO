@@ -1063,3 +1063,155 @@ input[type="range"].eco-slider::-webkit-slider-thumb:hover {
     scroll-behavior: auto !important;
   }
 }
+
+/* ==========================================================================
+   Budget Planner Professional Dashboard
+   ========================================================================== */
+
+.budget-planner-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+  gap: var(--space-24);
+  align-items: start;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .budget-planner-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-20);
+  }
+}
+
+.budget-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+}
+
+.budget-select {
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--white);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-button);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.budget-select:focus-visible {
+  border-color: var(--forest-green);
+  box-shadow: 0 0 0 2px var(--lime-accent-glow);
+}
+
+.budget-kpi-card {
+  background: var(--white);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--space-16) var(--space-20);
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.budget-kpi-card:hover {
+  box-shadow: var(--shadow-card);
+}
+
+.budget-kpi-card.forest { border-left: 4px solid var(--forest-green); }
+.budget-kpi-card.positive { border-left: 4px solid var(--risk-moderate); }
+.budget-kpi-card.warning { border-left: 4px solid var(--risk-elevated); }
+.budget-kpi-card.danger { border-left: 4px solid var(--risk-severe); background: var(--risk-severe-bg); }
+.budget-kpi-card.info { border-left: 4px solid var(--info-blue); }
+
+.budget-progress-track {
+  width: 100%;
+  height: 6px;
+  background: var(--warm-ivory);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-top: var(--space-8);
+}
+
+.budget-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.scenario-card-btn {
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: var(--radius-button);
+  border: 1px solid var(--border-subtle);
+  background: var(--white);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scenario-card-btn:hover {
+  border-color: var(--border-strong);
+  background: var(--warm-ivory);
+}
+
+.scenario-card-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--lime-accent), 0 0 0 4px var(--forest-green);
+}
+
+.scenario-card-btn.active {
+  border-color: var(--forest-green);
+  background: rgba(184, 233, 134, 0.15);
+  box-shadow: 0 2px 6px rgba(23, 63, 53, 0.08);
+}
+
+.intervention-card-premium {
+  background: var(--white);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  box-shadow: var(--shadow-subtle);
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.intervention-card-premium:hover {
+  box-shadow: var(--shadow-card);
+  border-color: var(--border-strong);
+}
+
+.metrics-row-container {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-12);
+  background: var(--warm-ivory);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-button);
+  padding: 12px 16px;
+}
+
+@media (max-width: 768px) {
+  .metrics-row-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .metrics-row-container {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+

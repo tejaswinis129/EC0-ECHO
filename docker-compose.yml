@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  eco-echo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: eco-echo-app
+    image: eco-echo:latest
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - PORT=8000
+      - DATABASE_URL=sqlite:////app/server/app/data/eco_echo.db
+      - USE_AWS_BEDROCK=${USE_AWS_BEDROCK:-false}
+      - USE_AWS_S3=${USE_AWS_S3:-false}
+      - AWS_REGION=${AWS_REGION:-ap-south-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET:-eco-echo-sustainability-data-2026}
+    volumes:
+      - eco_echo_data:/app/server/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  eco_echo_data:
+    driver: local

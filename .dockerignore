@@ -1,0 +1,39 @@
+# Git & version control
+.git
+.gitignore
+
+# Environment & credentials (CRITICAL: Never bake secrets into image)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python virtual environment & caches
+.venv
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+*.sqlite3
+eco_echo.db
+
+# Node & frontend build caches
+client/node_modules/
+client/.vite/
+client/dist/
+
+# IDE & agent artifacts
+.gemini/
+.agent/
+.agents/
+.gsd/
+scratch/
+*.log
+
+# OS artifacts
+.DS_Store
+Thumbs.db

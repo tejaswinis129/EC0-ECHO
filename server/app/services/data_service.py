@@ -8,6 +8,7 @@ from typing import List, Dict, Optional, Tuple, Any
 import pandas as pd
 
 from ..config import settings
+from .s3_service import s3_service
 from ..models.data_engine import (
     NeighbourhoodRecord,
     ValidationIssue,
@@ -103,7 +104,21 @@ class DataService:
         return self._metadata_cache.get(dataset_id)
 
     def get_dataset(self, dataset_id: str) -> Optional[pd.DataFrame]:
-        return self._datasets_cache.get(dataset_id)
+        df = self._datasets_cache.get(dataset_id)
+        if df is not None:
+            return df
+        
+        # If not present in local cache and S3 is enabled, attempt retrieval from S3
+        if s3_service.is_enabled():
+            try:
+                csv_data = s3_service.get_dataset(dataset_id)
+                if csv_data:
+                    df_s3 = pd.read_csv(io.StringIO(csv_data))
+                    self._datasets_cache[dataset_id] = df_s3
+                    return df_s3
+            except Exception:
+                pass
+        return None
 
     def validate_csv(self, file_content: str, filename: str = "upload.csv") -> Tuple[ValidationReport, Optional[pd.DataFrame]]:
         """Parses, validates, and cleans an uploaded CSV file."""
@@ -232,9 +247,10 @@ class DataService:
 
     def register_uploaded_dataset(self, df: pd.DataFrame, name: str, provenance: str) -> DatasetMetadata:
         dataset_id = f"custom-{uuid.uuid4().hex[:8]}"
-        created_at = datetime.datetime.utcnow().isoformat() + "Z"
+        created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
         
         self._datasets_cache[dataset_id] = df
+        csv_str = df.to_csv(index=False)
         meta = DatasetMetadata(
             dataset_id=dataset_id,
             name=name or f"User Dataset ({dataset_id})",
@@ -243,9 +259,22 @@ class DataService:
             created_at=created_at,
             row_count=len(df),
             is_sample=False,
-            file_size_bytes=len(df.to_csv(index=False).encode("utf-8")),
+            file_size_bytes=len(csv_str.encode("utf-8")),
         )
         self._metadata_cache[dataset_id] = meta
+
+        # Optional S3 Cloud Sync (always preserves local cache fallback)
+        if s3_service.is_enabled():
+            try:
+                meta_dict = meta.model_dump() if hasattr(meta, "model_dump") else meta.dict()
+                s3_service.upload_dataset(
+                    dataset_id=dataset_id,
+                    csv_content=csv_str,
+                    metadata=meta_dict,
+                )
+            except Exception:
+                pass
+
         return meta
 
     def get_summary(self, dataset_id: str) -> Optional[DatasetSummary]:

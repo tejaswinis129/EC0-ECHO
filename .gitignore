@@ -18,8 +18,9 @@ server/eco_echo.db
 
 # Secrets & Environment Variables
 .env
-.env.local
-.env.production
+.env.*
+.aws/
+credentials
 *.pem
 *.key
 
@@ -42,3 +43,7 @@ Thumbs.db
 # Internal workspace scratch
 scratch/
 .system_generated/
+server/app/data/evidence_uploads/*
+!server/app/data/evidence_uploads/.gitkeep
+server/app/data/saved_plans/*
+!server/app/data/saved_plans/.gitkeep

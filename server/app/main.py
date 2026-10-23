@@ -1,7 +1,9 @@
 import time
+import os
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .api.data_routes import router as data_router
@@ -13,6 +15,10 @@ from .api.consequence_routes import router as consequence_router
 from .api.ai_routes import router as ai_router
 from .api.report_routes import router as report_router
 from .api.settings_routes import router as settings_router
+from .api.s3_routes import router as s3_router
+from .api.implementation_routes import router as implementation_router
+from .api.evidence_routes import router as evidence_router
+from .api.diagram_routes import router as diagram_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -23,10 +29,14 @@ app = FastAPI(
 )
 
 # 1. CORS Middleware
+cors_origins = list(settings.CORS_ORIGINS)
+allow_all = "*" in cors_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=cors_origins if not allow_all else ["*"],
+    allow_origin_regex=r"^https://.*\.onrender\.com$" if not allow_all else None,
+    allow_credentials=not allow_all,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
@@ -113,7 +123,37 @@ app.include_router(consequence_router, prefix="/api")
 app.include_router(ai_router, prefix="/api")
 app.include_router(report_router, prefix="/api")
 app.include_router(settings_router, prefix="/api")
+app.include_router(s3_router, prefix="/api")
+app.include_router(implementation_router, prefix="/api")
+app.include_router(evidence_router, prefix="/api")
+app.include_router(diagram_router, prefix="/api")
+
+# 7. Single-Link Full-Stack Delivery: Serve Frontend SPA from FastAPI
+client_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "client", "dist"))
+if os.path.isdir(client_dist):
+    assets_dir = os.path.join(client_dist, "assets")
+    if os.path.isdir(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        if (
+            full_path.startswith("api/")
+            or full_path == "api"
+            or full_path.startswith("docs")
+            or full_path.startswith("redoc")
+            or full_path == "openapi.json"
+        ):
+            raise HTTPException(status_code=404, detail="Not Found")
+        file_path = os.path.join(client_dist, full_path)
+        if full_path and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        index_file = os.path.join(client_dist, "index.html")
+        if os.path.isfile(index_file):
+            return FileResponse(index_file)
+        raise HTTPException(status_code=404, detail="Frontend build index.html not found.")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("server.app.main:app", host="0.0.0.0", port=port, reload=settings.DEBUG)

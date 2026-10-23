@@ -13,9 +13,23 @@ import {
   DecisionExplanation,
   DecisionRecord,
   SystemStatus,
+  ImplementationPlanRequest,
+  ClassificationResult,
+  ImplementationPlan,
+  PlanSummaryItem,
+  DataSourceRegistryItem,
+  RealWorldEvidenceRecord,
+  UploadedDocumentMetadata,
+  StructureDiagram,
 } from "../types";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000/api";
+const rawApiBase = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || "").trim();
+
+const API_BASE = rawApiBase
+  ? (rawApiBase.endsWith("/api") ? rawApiBase : `${rawApiBase.replace(/\/$/, "")}/api`)
+  : (import.meta.env.PROD || (typeof window !== "undefined" && window.location.port !== "5173")
+    ? "/api"
+    : "http://localhost:8000/api");
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
@@ -169,4 +183,88 @@ export const api = {
   // 9. Settings & System Status
   getSystemStatus: () => request<SystemStatus>("/settings/status"),
   checkHealth: () => request<{ status: string; app: string; version: string }>("/health"),
+
+  // 10. AI Urban Engineering & Implementation Planner
+  classifyPlanRequest: (data: ImplementationPlanRequest) =>
+    request<ClassificationResult>("/planner/classify", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  generateImplementationPlan: (data: ImplementationPlanRequest) =>
+    request<ImplementationPlan>("/planner/generate", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getImplementationPlan: (planId: string) =>
+    request<ImplementationPlan>(`/planner/plans/${planId}`),
+  listImplementationPlans: () =>
+    request<PlanSummaryItem[]>("/planner/plans"),
+  recalculatePlanScenario: (planId: string, scenarioType: string) =>
+    request<ImplementationPlan>(`/planner/plans/${planId}/scenario`, {
+      method: "POST",
+      body: JSON.stringify({ scenario_type: scenarioType }),
+    }),
+  exportPlanReport: (planId: string, format = "markdown") =>
+    request<{ plan_id: string; format: string; reproducibility_hash: string; content: string }>(
+      `/planner/plans/${planId}/export?format=${format}`
+    ),
+
+  // 11. Real-World Evidence & Data Source Registry
+  listEvidenceSources: () =>
+    request<DataSourceRegistryItem[]>("/evidence/sources"),
+  getEvidenceSource: (sourceId: string) =>
+    request<DataSourceRegistryItem>(`/evidence/sources/${sourceId}`),
+  testSourceConnection: (sourceId: string) =>
+    request<any>(`/evidence/sources/${sourceId}/test`),
+  searchEvidenceRecords: (params?: {
+    query?: string;
+    category?: string;
+    location?: string;
+    provenance_type?: string;
+  }) => {
+    const sp = new URLSearchParams();
+    if (params?.query) sp.append("query", params.query);
+    if (params?.category) sp.append("category", params.category);
+    if (params?.location) sp.append("location", params.location);
+    if (params?.provenance_type) sp.append("provenance_type", params.provenance_type);
+    const qs = sp.toString() ? `?${sp.toString()}` : "";
+    return request<RealWorldEvidenceRecord[]>(`/evidence/records${qs}`);
+  },
+  getEvidenceRecord: (recordId: string) =>
+    request<RealWorldEvidenceRecord>(`/evidence/records/${recordId}`),
+  uploadEvidenceDocument: async (file: File): Promise<UploadedDocumentMetadata> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${API_BASE}/evidence/upload`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) {
+      let errMsg = `Upload failed (${res.status})`;
+      try {
+        const d = await res.json();
+        errMsg = d.detail || errMsg;
+      } catch {}
+      throw new Error(errMsg);
+    }
+    return res.json();
+  },
+  listUploadedDocuments: () =>
+    request<UploadedDocumentMetadata[]>("/evidence/uploads"),
+
+  // 12. Construction Structure Visualizer & Staged Diagrams
+  getStructureDiagram: (projectType: string, view = "cross_section", location = "Bengaluru") =>
+    request<StructureDiagram>(
+      `/diagrams/${projectType}?view=${view}&location=${encodeURIComponent(location)}`
+    ),
+  getCustomStructureDiagram: (payload: {
+    project_type: string;
+    view?: string;
+    location_name?: string;
+    custom_params?: Record<string, any>;
+  }) =>
+    request<StructureDiagram>("/diagrams/custom", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 };

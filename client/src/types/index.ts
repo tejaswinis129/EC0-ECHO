@@ -323,3 +323,389 @@ export interface SystemStatus {
     governance_note: string;
   };
 }
+
+// ============================================================================
+// Implementation Planner Types
+// ============================================================================
+
+export type InterventionCategoryType =
+  | "stormwater_drainage"
+  | "road_construction"
+  | "footpaths_pedestrian"
+  | "rainwater_harvesting"
+  | "water_supply"
+  | "wastewater_sewage"
+  | "urban_forest"
+  | "parks_biodiversity"
+  | "green_roofs"
+  | "heat_mitigation"
+  | "waste_management"
+  | "renewable_energy"
+  | "public_transport"
+  | "erosion_control"
+  | "multi_intervention_integrated"
+  | "other";
+
+export interface SiteInvestigationItem {
+  category: string;
+  item_name: string;
+  status: "Provided and verified" | "Provided but unverified" | "Estimated" | "Missing and required" | "Not applicable";
+  importance: "Critical" | "High" | "Moderate";
+  description: string;
+  recommended_survey_or_standard: string;
+}
+
+export interface DesignAlternative {
+  id: string;
+  name: string;
+  concept_summary: string;
+  how_it_works: string;
+  suitability: string;
+  required_space: string;
+  expected_benefits: string[];
+  construction_disruption_level: "Low" | "Moderate" | "High";
+  estimated_cost_level: "Low" | "Moderate" | "High";
+  maintenance_implications: string;
+  environmental_and_social_consequences: string;
+  key_limitations_and_risks: string[];
+  when_not_to_select: string;
+}
+
+export interface ConstructionPhase {
+  phase_number: number;
+  name: string;
+  purpose: string;
+  work_to_be_performed: string[];
+  dependencies: string[];
+  responsible_parties: string[];
+  materials_and_equipment: string[];
+  estimated_duration_range: string;
+  access_and_safety_requirements: string[];
+  required_inspections_or_approvals: string[];
+  completion_criteria: string;
+  main_risks_and_mitigation: string[];
+}
+
+export interface CommunityDisruptionItem {
+  disruption_type: string;
+  what_could_happen: string;
+  who_is_affected: string[];
+  preventive_mitigation: string;
+  alternative_access_or_service: string;
+  monitoring_responsible: string;
+  contingency_if_mitigation_fails: string;
+  residual_risk: string;
+}
+
+export interface CommunityProtectionPlan {
+  affected_stakeholder_groups: string[];
+  disruptions: CommunityDisruptionItem[];
+  school_and_hospital_protocol: string;
+  emergency_vehicle_access_plan: string;
+  noise_dust_vibration_controls: string[];
+  utility_protection_protocol: string;
+  advance_notice_and_communication_plan: string;
+  complaint_reporting_and_hotline: string;
+  restoration_of_roads_and_paths: string;
+}
+
+export interface WeatherProtectionPlan {
+  is_weather_sensitive: boolean;
+  applicable_hazards: string[];
+  seasonal_climate_assessment: string;
+  forecast_warning_monitoring_thresholds: string[];
+  temporary_drainage_and_diversion_measures: string[];
+  excavation_and_trench_protection: string;
+  erosion_and_sediment_control: string;
+  stop_work_and_site_evacuation_triggers: string[];
+  emergency_contacts_and_escalation: string[];
+  safe_restart_criteria_after_severe_weather: string;
+  drainage_system_distinctions?: Record<string, string>;
+}
+
+export interface BudgetItem {
+  category: string;
+  description: string;
+  amount: number;
+  currency: string;
+  unit_quantity?: string;
+  status: string;
+  assumptions: string;
+  cost_uncertainty_range: string;
+}
+
+export interface ImplementationBudget {
+  currency: string;
+  items: BudgetItem[];
+  total_permanent_works_cost: number;
+  total_temporary_and_protective_cost: number;
+  total_traffic_and_community_cost: number;
+  total_contingency_reserve: number;
+  total_estimated_capital_outlay: number;
+  annual_maintenance_estimate: number;
+  ten_year_lifecycle_estimate: number;
+  budget_ceiling?: number;
+  fits_within_budget: boolean;
+  budget_shortfall_or_cushion: number;
+  budget_explanation: string;
+}
+
+export interface ImplementationRisk {
+  risk_id: string;
+  title: string;
+  risk_description: string;
+  likelihood: "Low" | "Medium" | "High";
+  severity: "Minor" | "Moderate" | "Major" | "Critical";
+  affected_parties_or_assets: string[];
+  early_warning_signs: string[];
+  preventive_measures: string[];
+  contingency_actions: string[];
+  responsible_party: string;
+  residual_risk_level: string;
+  requires_licensed_engineer: boolean;
+}
+
+export interface ImplementationConsequence {
+  id: string;
+  impact_type: string;
+  domain: string;
+  description: string;
+  magnitude_estimate: string;
+  who_benefits: string;
+  who_bears_costs: string;
+  equity_mitigation_measure?: string;
+}
+
+export interface QualityAndTestingItem {
+  test_number: number;
+  inspection_or_test_name: string;
+  timing: string;
+  testing_procedure: string;
+  acceptance_criteria: string;
+  responsible_inspector: string;
+  records_to_maintain: string;
+  corrective_action_if_failed: string;
+}
+
+export interface MaintenancePlanItem {
+  activity_name: string;
+  frequency_or_trigger: string;
+  responsible_party: string;
+  required_tools_and_materials: string;
+  annual_cost_estimate: string;
+  performance_indicators: string[];
+  warning_signs_of_failure: string[];
+  escalation_and_repair_protocol: string;
+}
+
+export interface ImplementationPlanRequest {
+  prompt: string;
+  location_or_neighbourhood?: string;
+  intervention_type?: string;
+  main_goal?: string;
+  budget_ceiling?: number;
+  currency?: string;
+  available_space_m2?: number;
+  start_date?: string;
+  target_completion_date?: string;
+  weather_constraints?: string;
+  existing_infrastructure_condition?: string;
+  nearby_critical_facilities?: string[];
+  required_service_continuity?: string[];
+  dataset_id?: string;
+  selected_strategy?: string;
+  attached_file_ids?: string[];
+  source_ids?: string[];
+}
+
+export interface ClassificationResult {
+  primary_category: InterventionCategoryType;
+  secondary_categories: InterventionCategoryType[];
+  confidence_score: number;
+  detected_goals: string[];
+  detected_constraints: string[];
+  is_weather_sensitive: boolean;
+  is_traffic_sensitive: boolean;
+  is_utility_sensitive: boolean;
+  is_multidisciplinary: boolean;
+  suggested_followups: string[];
+}
+
+export interface ImplementationPlan {
+  plan_id: string;
+  created_at: string;
+  reproducibility_hash: string;
+  project_name: string;
+  user_stated_problem: string;
+  main_objectives: string[];
+  location_or_neighbourhood: string;
+  dataset_id?: string;
+  classification: ClassificationResult;
+  summary_simple_english: string;
+  data_completeness_pct: number;
+  verified_facts: string[];
+  planning_assumptions: string[];
+  missing_critical_data: string[];
+  approval_and_licensing_requirements: string[];
+  site_investigations: SiteInvestigationItem[];
+  recommended_design: DesignAlternative;
+  design_alternatives: DesignAlternative[];
+  construction_phases: ConstructionPhase[];
+  community_protection: CommunityProtectionPlan;
+  weather_protection: WeatherProtectionPlan;
+  budget: ImplementationBudget;
+  risk_register: ImplementationRisk[];
+  consequences: ImplementationConsequence[];
+  quality_assurance: QualityAndTestingItem[];
+  maintenance_plan: MaintenancePlanItem[];
+  standards_and_guidance_citations: Array<{ standard: string; relevance: string }>;
+  professional_disclaimer: string;
+  structure_diagram?: StructureDiagram;
+  evidence_records?: RealWorldEvidenceRecord[];
+  uncertainty_labels?: Record<string, string>;
+}
+
+export interface PlanSummaryItem {
+  plan_id: string;
+  project_name: string;
+  created_at: string;
+  primary_category: InterventionCategoryType;
+  location: string;
+  total_cost: number;
+  currency: string;
+  completeness_pct: number;
+  fits_budget: boolean;
+}
+
+// ============================================================================
+// Real-World Evidence & Source Registry Types
+// ============================================================================
+
+export type ProvenanceType =
+  | "VERIFIED_SOURCE_FACT"
+  | "DERIVED_VALUE"
+  | "ESTIMATE"
+  | "SIMULATED"
+  | "UNVERIFIED"
+  | "MISSING"
+  | "ILLUSTRATIVE";
+
+export type AccessMode = "API_CONNECTED" | "PORTAL_INDEXED" | "MANUAL_IMPORT_REQUIRED";
+
+export interface DataSourceRegistryItem {
+  source_id: string;
+  name: string;
+  publisher: string;
+  category: string;
+  original_url: string;
+  active_resource_url?: string | null;
+  format: string;
+  geographic_scope: string;
+  license: string;
+  access_mode: AccessMode;
+  description: string;
+  coverage_period: string;
+  last_checked: string;
+  is_live: boolean;
+  manual_import_instructions?: string | null;
+}
+
+export interface RealWorldEvidenceRecord {
+  record_id: string;
+  project_name: string;
+  source_id: string;
+  source_publisher: string;
+  source_url: string;
+  document_reference: string;
+  publication_date: string;
+  retrieval_timestamp: string;
+  location_name: string;
+  ward_number?: number | null;
+  zone_name?: string | null;
+  valley_basin?: string | null;
+  category: string;
+  provenance_type: ProvenanceType;
+  field_values: Record<string, any>;
+  units_and_currencies: Record<string, string>;
+  formula_or_derivation?: string | null;
+  validation_status: string;
+  missing_or_unverified_fields: string[];
+  license: string;
+  notes: string;
+}
+
+export interface UploadedDocumentMetadata {
+  file_id: string;
+  filename: string;
+  file_type: string;
+  size_bytes: number;
+  uploaded_at: string;
+  extracted_records_count: number;
+  extracted_summary: string;
+  validation_status: string;
+  sample_records: Array<Record<string, any>>;
+}
+
+// ============================================================================
+// Construction Structure Visualizer & Diagram Types
+// ============================================================================
+
+export type DiagramViewType = "cross_section" | "plan_view" | "construction_stages";
+
+export interface DiagramComponent {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  provenance: ProvenanceType;
+  evidence_ref?: string | null;
+  assumptions: string[];
+  risks: string[];
+  construction_stage: string;
+  is_verified: boolean;
+  dimensions_label?: string | null;
+  svg_element: string;
+  svg_props: Record<string, any>;
+}
+
+export interface DiagramDimensionLine {
+  id: string;
+  label: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  text_x: number;
+  text_y: number;
+  is_illustrative: boolean;
+  citation?: string | null;
+}
+
+export interface ConstructionStageVisual {
+  stage_number: number;
+  stage_name: string;
+  duration_estimate: string;
+  description: string;
+  key_actions: string[];
+  safety_measures: string[];
+  active_component_ids: string[];
+  inspection_checkpoint: string;
+}
+
+export interface StructureDiagram {
+  diagram_id: string;
+  project_type: string;
+  project_name: string;
+  location_name: string;
+  view_type: DiagramViewType;
+  title: string;
+  subtitle: string;
+  viewbox: string;
+  components: DiagramComponent[];
+  dimension_lines: DiagramDimensionLine[];
+  stages: ConstructionStageVisual[];
+  disclaimer: string;
+  evidence_citations: string[];
+  generated_at: string;
+}
+

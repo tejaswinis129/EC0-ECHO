@@ -16,6 +16,7 @@ import {
   MapPin,
   Wallet,
   Layers,
+  HardHat,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -71,6 +72,13 @@ export const Layout: React.FC<LayoutProps> = ({
       label: "Optimisation Studio",
       icon: Sliders,
       description: "SciPy HiGHS constrained solver",
+    },
+    {
+      id: "planner",
+      label: "Implementation Planner",
+      icon: HardHat,
+      badge: "New",
+      description: "Civil engineering & resident protection",
     },
     {
       id: "transformation",

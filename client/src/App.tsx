@@ -13,6 +13,7 @@ import { TermsPage } from "./pages/TermsPage";
 import { CityMapPage } from "./pages/CityMapPage";
 import { BudgetPlannerPage } from "./pages/BudgetPlannerPage";
 import { VisualTransformationPage } from "./pages/VisualTransformationPage";
+import { ImplementationPlannerPage } from "./pages/ImplementationPlannerPage";
 
 import { api } from "./api/client";
 import { DatasetMetadata, DatasetSummary, RiskOverview } from "./types";
@@ -100,6 +101,17 @@ export const App: React.FC = () => {
     setCurrentTab("consequences");
   };
 
+  const [plannerInitialState, setPlannerInitialState] = useState<{
+    prompt?: string;
+    budget?: number;
+    location?: string;
+  }>({});
+
+  const handleNavigateToPlanner = (prompt?: string, budget?: number, location?: string) => {
+    setPlannerInitialState({ prompt, budget, location });
+    setCurrentTab("planner");
+  };
+
   const handleNavigateToBudget = (neighbourhoodId?: string) => {
     if (neighbourhoodId) setSelectedNeighbourhoodId(neighbourhoodId);
     setCurrentTab("budget");
@@ -165,6 +177,9 @@ export const App: React.FC = () => {
           onNavigateToTransformation={handleNavigateToTransformation}
           onNavigateToConsequences={handleNavigateToConsequences}
           preselectedNeighbourhoodId={selectedNeighbourhoodId}
+          onSelectDataset={setActiveDatasetId}
+          availableDatasets={availableDatasets}
+          onNavigateToPlanner={handleNavigateToPlanner}
         />
       )}
 
@@ -174,6 +189,22 @@ export const App: React.FC = () => {
           onNavigateToConsequences={handleNavigateToConsequences}
           onSelectDataset={setActiveDatasetId}
           availableDatasets={availableDatasets}
+          onNavigateToPlanner={handleNavigateToPlanner}
+        />
+      )}
+
+      {currentTab === "planner" && (
+        <ImplementationPlannerPage
+          activeDatasetId={activeDatasetId}
+          onNavigateToMap={handleNavigateToMap}
+          onNavigateToBudget={handleNavigateToBudget}
+          onNavigateToConsequences={handleNavigateToConsequences}
+          preselectedNeighbourhoodId={selectedNeighbourhoodId}
+          availableDatasets={availableDatasets}
+          onSelectDataset={setActiveDatasetId}
+          initialPrompt={plannerInitialState.prompt}
+          initialBudget={plannerInitialState.budget}
+          initialLocation={plannerInitialState.location}
         />
       )}
 

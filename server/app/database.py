@@ -6,11 +6,18 @@ from typing import List, Optional, Dict, Any
 
 from .config import settings
 
-DB_FILE = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
+def get_db_file() -> Path:
+    return Path(settings.DATABASE_URL.replace("sqlite:///", ""))
+
+DB_FILE = get_db_file()
 
 def init_db():
-    DB_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(DB_FILE) as conn:
+    db_file = get_db_file()
+    try:
+        db_file.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
         
         # 1. Decision Records Table
@@ -54,7 +61,7 @@ class DatabaseManager:
 
     def save_decision_record(self, record_id: str, dataset_id: str, dataset_name: str, strategy: str, hash_val: str, data: Dict[str, Any]):
         now = datetime.datetime.utcnow().isoformat() + "Z"
-        with sqlite3.connect(DB_FILE) as conn:
+        with sqlite3.connect(get_db_file()) as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT OR REPLACE INTO decision_records (record_id, created_at, dataset_id, dataset_name, strategy, reproducibility_hash, record_json)
@@ -68,7 +75,7 @@ class DatabaseManager:
             conn.commit()
 
     def get_decision_record(self, record_id: str) -> Optional[Dict[str, Any]]:
-        with sqlite3.connect(DB_FILE) as conn:
+        with sqlite3.connect(get_db_file()) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT record_json FROM decision_records WHERE record_id = ?", (record_id,))
             row = cursor.fetchone()
@@ -77,7 +84,7 @@ class DatabaseManager:
             return None
 
     def list_decision_records(self) -> List[Dict[str, Any]]:
-        with sqlite3.connect(DB_FILE) as conn:
+        with sqlite3.connect(get_db_file()) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT record_id, created_at, dataset_id, dataset_name, strategy, reproducibility_hash FROM decision_records ORDER BY created_at DESC")
             rows = cursor.fetchall()

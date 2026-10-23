@@ -111,6 +111,78 @@ class ConsequenceEngine:
         ))
         edges.append(ConsequenceEdge(source_id=direct_id, target_id=env_runoff_id, relationship_label="Intercepts stormwater"))
 
+        # 2b. Domain-Specific Infrastructure & Drainage Causal Consequence
+        if intervention.id == "int-suds-bioswale":
+            infra_tradeoff_id = "node-2b-infra-bioswale"
+            nodes.append(ConsequenceNode(
+                id=infra_tradeoff_id,
+                label="Downstream Hydraulic Transfer vs Sediment Siltation",
+                category=ConsequenceCategory.DIRECT,
+                affected_metric="Downstream Peak Hydrograph & Catch Basin Siltation",
+                direction=ImpactDirection.UNCERTAIN,
+                magnitude_estimate="Mitigates local road pooling by 60-80%; potential peak transfer downstream during cloudbursts",
+                source_or_calculation="Urban Drainage CIRIA C753 SuDS Manual & Rational Runoff Attenuation Models",
+                confidence=ConfidenceLevel.MODEL_ESTIMATE,
+                suggested_mitigation="Incorporate sediment forebays and connect roadside swales to regional detention basins rather than direct river outfalls.",
+                detailed_explanation=(
+                    "Engineered bioswales rapidly clear localized road waterlogging, protecting emergency routes and transit access. "
+                    "However, if peak rainfall exceeds infiltration rate, bypass overflow water is transferred rapidly downstream, "
+                    "which may exacerbate flooding in lower-elevation coastal or riverfront districts if downstream channels lack buffer storage."
+                ),
+                depth_level=2
+            ))
+            edges.append(ConsequenceEdge(source_id=env_runoff_id, target_id=infra_tradeoff_id, relationship_label="Alters catchment flow timing"))
+            unintended_tradeoffs.append("Local road dewatering can transfer peak storm surge pulses to downstream outfall districts without regional detention.")
+            mitigations.append("Pair roadside bioswales with downstream retention ponds and bi-monthly sediment trap clearance.")
+
+        elif intervention.id == "int-permeable-pavement":
+            infra_tradeoff_id = "node-2b-infra-permeable"
+            nodes.append(ConsequenceNode(
+                id=infra_tradeoff_id,
+                label="Subsoil Infiltration & Pore Clogging Vulnerability",
+                category=ConsequenceCategory.DIRECT,
+                affected_metric="Pavement Hydrological Infiltration & Sub-base Longevity",
+                direction=ImpactDirection.UNCERTAIN,
+                magnitude_estimate="Initial infiltration rate > 2,000 mm/hr; degrades by 40-70% over 5 years if unswept",
+                source_or_calculation="ICPI Permeable Design Manual & FHWA Stormwater Pavement Guidelines",
+                confidence=ConfidenceLevel.BENCHMARK_ASSUMPTION,
+                suggested_mitigation="Require high-vacuum regenerative street sweeping bi-annually; verify subgrade percolation (> 15 mm/hr) or add perforated collector underdrains.",
+                detailed_explanation=(
+                    "Permeable interlocking concrete pavers allow stormwater to infiltrate directly into subterranean gravel sub-bases, "
+                    "greatly reducing road surface puddling and hydroplaning risks. "
+                    "However, vehicular tyre friction and airborne silt progressively clog pore spaces. Furthermore, installations over expansive clay subgrades "
+                    "can cause sub-base saturation and localized pavement rutting under heavy transit loads unless perforated underdrains are engineered."
+                ),
+                depth_level=2
+            ))
+            edges.append(ConsequenceEdge(source_id=env_runoff_id, target_id=infra_tradeoff_id, relationship_label="Filters into subgrade"))
+            unintended_tradeoffs.append("Pore spaces are prone to progressive silt clogging from road dust, diminishing infiltration if regular vacuum sweeping is deferred.")
+            mitigations.append("Deploy municipal vacuum sweepers twice yearly and restrict heavy freight traffic on porous pavement sections.")
+
+        elif intervention.id == "int-green-roof":
+            infra_tradeoff_id = "node-2b-infra-greenroof"
+            nodes.append(ConsequenceNode(
+                id=infra_tradeoff_id,
+                label="Rooftop Stormwater Detention vs Structural Dead Load",
+                category=ConsequenceCategory.DIRECT,
+                affected_metric="Building Structural Dead Load & Roof Waterproofing",
+                direction=ImpactDirection.UNCERTAIN,
+                magnitude_estimate="Retains 40-70% rooftop storm volume; imposes 80-140 kg/m² saturated structural load",
+                source_or_calculation="FLL Green Roof Guidelines & ASTM E2397 Structural Dead Load Testing",
+                confidence=ConfidenceLevel.MEASURED,
+                suggested_mitigation="Perform mandatory licensed structural engineering audit on roof slabs; install multi-ply root-impermeable elastomeric waterproofing membranes.",
+                detailed_explanation=(
+                    "Sedum green roofs act as decentralized micro-reservoirs directly at building elevation, absorbing initial cloudburst rain "
+                    "and releasing it slowly via evapotranspiration. "
+                    "However, saturated growing media adds substantial dead load (80-150 kg/m²). Older unreinforced buildings or pitched roofs "
+                    "cannot safely accommodate this weight without costly structural reinforcement, and improper root barrier installation risks internal water leaks."
+                ),
+                depth_level=2
+            ))
+            edges.append(ConsequenceEdge(source_id=env_runoff_id, target_id=infra_tradeoff_id, relationship_label="Imposes rooftop physical load"))
+            unintended_tradeoffs.append("Adds 80-140 kg/m² saturated dead load to building decks, requiring structural certification and root-barrier waterproofing.")
+            mitigations.append("Conduct certified structural load tests on existing buildings and mandate dual-layer root-impermeable membranes.")
+
         # 3. Water Consequence (Crucial Trade-off!)
         water_id = "node-3-water"
         net_water = round(units_deployed * intervention.water_demand_m3_per_unit_year, 1)
