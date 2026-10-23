@@ -293,7 +293,7 @@ export const ConsequenceGraph: React.FC<ConsequenceGraphProps> = ({ graph }) => 
           </div>
 
           {/* Causal Stage Sequences (Clean, Consistent Widths, No Deep Indentation) */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             {[0, 1, 2, 3].map((stageNum) => {
               const nodesInStage = stageGroups[stageNum]?.filter((n) =>
                 categoryFilter === "all" ? true : n.category.includes(categoryFilter)
@@ -309,7 +309,7 @@ export const ConsequenceGraph: React.FC<ConsequenceGraphProps> = ({ graph }) => 
                       color: "rgba(255, 255, 255, 0.65)",
                       textTransform: "uppercase",
                       letterSpacing: "0.6px",
-                      marginBottom: "10px",
+                      marginBottom: "12px",
                       display: "flex",
                       alignItems: "center",
                       gap: "6px",
@@ -319,7 +319,7 @@ export const ConsequenceGraph: React.FC<ConsequenceGraphProps> = ({ graph }) => 
                     <span style={{ fontSize: "10px", opacity: 0.7 }}>({nodesInStage.length})</span>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "10px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "14px" }}>
                     {nodesInStage.map((node) => {
                       const theme = getCategoryTheme(node.category);
                       const Icon = theme.icon;
@@ -346,7 +346,7 @@ export const ConsequenceGraph: React.FC<ConsequenceGraphProps> = ({ graph }) => 
                             </span>
                           </div>
 
-                          <div style={{ fontSize: "13.5px", fontWeight: 700, color: "#FFFFFF", margin: "6px 0 4px 0", lineHeight: 1.35 }}>
+                          <div style={{ fontSize: "13.5px", fontWeight: 700, color: "#FFFFFF", margin: "8px 0 6px 0", lineHeight: 1.35 }}>
                             {node.label}
                           </div>
 

@@ -267,7 +267,7 @@ export const ScenarioLabPage: React.FC<ScenarioLabPageProps> = ({ activeDatasetI
       {simulationResult ? (
         <div>
           {/* Narrative Summary Card */}
-          <div className="card" style={{ marginBottom: "20px", borderLeft: "4px solid var(--forest-green)" }}>
+          <div className="card" style={{ marginBottom: "24px", borderLeft: "4px solid var(--forest-green)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
               <div>
                 <span className="badge badge-neutral" style={{ marginBottom: "6px" }}>

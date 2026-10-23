@@ -394,7 +394,7 @@ export const RiskAnalysisPage: React.FC<RiskAnalysisPageProps> = ({
         {/* Right: Selected District Structured Detail Panel */}
         <div>
           {selectedDistrict ? (
-            <div className="card" style={{ position: "sticky", top: "80px" }}>
+            <div className="card" style={{ position: "sticky", top: "84px", maxHeight: "calc(100vh - 108px)", overflowY: "auto" }}>
               <div className="card-header">
                 <div>
                   <span className="badge badge-neutral" style={{ marginBottom: "6px" }}>
@@ -416,7 +416,7 @@ export const RiskAnalysisPage: React.FC<RiskAnalysisPageProps> = ({
                   background: "var(--warm-ivory)",
                   borderRadius: "var(--radius-card)",
                   padding: "16px",
-                  marginBottom: "20px",
+                  marginBottom: "16px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -440,7 +440,7 @@ export const RiskAnalysisPage: React.FC<RiskAnalysisPageProps> = ({
               </div>
 
               {/* Sub-Hazard Progress Breakdown */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "20px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
                 <div>
                   <div className="form-label-row">
                     <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>

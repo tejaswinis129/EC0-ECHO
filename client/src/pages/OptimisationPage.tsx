@@ -299,7 +299,7 @@ export const OptimisationPage: React.FC<OptimisationPageProps> = ({
 
           {/* Strategy Alternative Selector Cards */}
           {result && result.is_feasible && (
-            <div style={{ marginBottom: "20px" }}>
+            <div style={{ marginBottom: "24px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                 <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)" }}>
                   Pareto-Alternative Strategic Portfolios
@@ -323,7 +323,7 @@ export const OptimisationPage: React.FC<OptimisationPageProps> = ({
                         backgroundColor: isSelected ? "var(--warm-ivory)" : "var(--white)",
                         border: `1px solid ${isSelected ? "var(--forest-green)" : "var(--border-subtle)"}`,
                         borderRadius: "var(--radius-card)",
-                        padding: "16px",
+                        padding: "16px 18px",
                         cursor: "pointer",
                         transition: "all var(--transition-fast)",
                         boxShadow: isSelected ? "var(--shadow-subtle)" : "none",
@@ -336,11 +336,11 @@ export const OptimisationPage: React.FC<OptimisationPageProps> = ({
                         {isSelected && <span className="badge badge-lime">Selected</span>}
                       </div>
 
-                      <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginBottom: "12px" }}>
+                      <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.4 }}>
                         {alt.strategy_rationale}
                       </div>
 
-                      <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "8px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "11.5px" }}>
+                      <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "10px", display: "flex", flexDirection: "column", gap: "6px", fontSize: "11.5px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                           <span style={{ color: "var(--text-secondary)" }}>Capital:</span>
                           <span className="tabular-nums" style={{ fontWeight: 700 }}>${(alt.total_capital_cost / 1000).toFixed(0)}k</span>
@@ -366,7 +366,7 @@ export const OptimisationPage: React.FC<OptimisationPageProps> = ({
           {/* Active Portfolio KPI Highlights */}
           {activePortfolio && (
             <>
-              <div className="grid-cols-4" style={{ marginBottom: "20px" }}>
+              <div className="grid-cols-4" style={{ marginBottom: "24px" }}>
                 <MetricCard
                   label="Capital Allocated"
                   value={`$${(activePortfolio.total_capital_cost / 1000).toFixed(0)}k`}
@@ -394,7 +394,7 @@ export const OptimisationPage: React.FC<OptimisationPageProps> = ({
               </div>
 
               {/* Allocations Table */}
-              <div className="card" style={{ marginBottom: "20px" }}>
+              <div className="card" style={{ marginBottom: "24px" }}>
                 <div className="card-header">
                   <div className="card-title">
                     <span>District Deployments: {activePortfolio.strategy_label}</span>

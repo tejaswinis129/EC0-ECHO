@@ -251,29 +251,29 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ activeDatasetId }) => 
               </div>
 
               {/* Summary Stats */}
-              <div className="grid-cols-4" style={{ marginBottom: "18px" }}>
-                <div style={{ background: "var(--warm-ivory)", padding: "12px", borderRadius: "var(--radius-button)" }}>
+              <div className="grid-cols-4" style={{ marginBottom: "20px" }}>
+                <div style={{ background: "var(--warm-ivory)", padding: "12px 14px", borderRadius: "var(--radius-button)" }}>
                   <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase" }}>Strategy</div>
                   <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--forest-green)", marginTop: "2px", textTransform: "capitalize" }}>
                     {selectedRecord.selected_strategy.replace(/_/g, " ")}
                   </div>
                 </div>
 
-                <div style={{ background: "var(--warm-ivory)", padding: "12px", borderRadius: "var(--radius-button)" }}>
+                <div style={{ background: "var(--warm-ivory)", padding: "12px 14px", borderRadius: "var(--radius-button)" }}>
                   <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase" }}>Capital Cost</div>
                   <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)", marginTop: "2px" }} className="tabular-nums">
                     ${(selectedRecord.recommended_portfolio.total_capital_cost / 1000).toFixed(0)}k
                   </div>
                 </div>
 
-                <div style={{ background: "var(--warm-ivory)", padding: "12px", borderRadius: "var(--radius-button)" }}>
+                <div style={{ background: "var(--warm-ivory)", padding: "12px 14px", borderRadius: "var(--radius-button)" }}>
                   <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase" }}>Annual O&M</div>
                   <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)", marginTop: "2px" }} className="tabular-nums">
                     ${(selectedRecord.recommended_portfolio.total_annual_maintenance / 1000).toFixed(0)}k/yr
                   </div>
                 </div>
 
-                <div style={{ background: "var(--warm-ivory)", padding: "12px", borderRadius: "var(--radius-button)" }}>
+                <div style={{ background: "var(--warm-ivory)", padding: "12px 14px", borderRadius: "var(--radius-button)" }}>
                   <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase" }}>Equity Score</div>
                   <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--forest-green)", marginTop: "2px" }}>
                     {selectedRecord.recommended_portfolio.equity_score.toFixed(1)} / 100
@@ -291,7 +291,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ activeDatasetId }) => 
                   fontFamily: "var(--font-mono)",
                   fontSize: "11.5px",
                   wordBreak: "break-all",
-                  marginBottom: "18px",
+                  marginBottom: "20px",
                   border: "1px solid rgba(184, 233, 134, 0.25)",
                 }}
               >
@@ -302,7 +302,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ activeDatasetId }) => 
               </div>
 
               {/* Consequences & Mitigations List */}
-              <div style={{ marginBottom: "18px" }}>
+              <div style={{ marginBottom: "20px" }}>
                 <div style={{ fontWeight: 700, fontSize: "13px", color: "var(--text-primary)", marginBottom: "6px" }}>
                   Identified Key Consequences & Mitigations:
                 </div>
