@@ -6,7 +6,7 @@
 [![Solver: SciPy HiGHS](https://img.shields.io/badge/Solver-SciPy_HiGHS-047857.svg)](https://scipy.org/)
 [![Audit: Verified](https://img.shields.io/badge/Security_Audit-Passed-059669.svg)](SECURITY_AUDIT.md)
 
-**GitHub Repository:** [https://github.com/tejaswinis129/ECO-ECHO](https://github.com/tejaswinis129/ECO-ECHO)
+**GitHub Repository:** [https://github.com/tejaswinis129/EC0-ECHO](https://github.com/tejaswinis129/EC0-ECHO)
 
 ---
 
@@ -93,8 +93,8 @@ Each node explicitly displays:
 
 ### Step 1: Clone Repository
 ```bash
-git clone https://github.com/tejaswinis129/ECO-ECHO.git
-cd ECO-ECHO
+git clone https://github.com/tejaswinis129/EC0-ECHO.git
+cd EC0-ECHO
 ```
 
 ### Step 2: Backend Setup

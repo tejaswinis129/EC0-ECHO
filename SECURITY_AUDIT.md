@@ -2,7 +2,7 @@
 
 **Audit Date:** October 2026  
 **Application:** ECO-ECHO Urban Sustainability Decision Engine  
-**Target Repository:** `https://github.com/tejaswinis129/ECO-ECHO`  
+**Target Repository:** `https://github.com/tejaswinis129/EC0-ECHO`  
 **Auditor:** Senior Full-Stack & Cybersecurity Audit Role
 
 ---

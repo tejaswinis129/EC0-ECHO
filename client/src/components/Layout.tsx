@@ -120,7 +120,7 @@ export const Layout: React.FC<LayoutProps> = ({
             <button onClick={() => onSelectTab("privacy")}>Privacy Policy</button>
             <button onClick={() => onSelectTab("terms")}>Terms of Use</button>
             <a
-              href="https://github.com/tejaswinis129/ECO-ECHO"
+              href="https://github.com/tejaswinis129/EC0-ECHO"
               target="_blank"
               rel="noopener noreferrer"
               style={{ display: "flex", alignItems: "center", gap: "4px" }}
