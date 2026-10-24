@@ -64,6 +64,8 @@ def save_decision_record(req: SaveRecordRequest):
 
     return record
 
+@router.get("")
+@router.get("/")
 @router.get("/list")
 def list_decision_records():
     return db_manager.list_decision_records()

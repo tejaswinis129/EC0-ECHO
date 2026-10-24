@@ -9,6 +9,7 @@ import pandas as pd
 
 from ..config import settings
 from .s3_service import s3_service
+from ..database import db_manager
 from ..models.data_engine import (
     NeighbourhoodRecord,
     ValidationIssue,
@@ -97,6 +98,25 @@ class DataService:
                 file_size_bytes=os.path.getsize(coastal_path),
             )
 
+        # 3. Load persistent user-uploaded datasets from database across restarts
+        try:
+            persisted_list = db_manager.list_datasets()
+            for p in persisted_list:
+                pid = p["dataset_id"]
+                if pid not in self._metadata_cache:
+                    self._metadata_cache[pid] = DatasetMetadata(
+                        dataset_id=pid,
+                        name=p["name"],
+                        description=p["description"] or "Municipal urban sustainability dataset.",
+                        provenance=p["provenance"],
+                        created_at=p["created_at"],
+                        row_count=p["row_count"],
+                        is_sample=p["is_sample"],
+                        file_size_bytes=p["file_size_bytes"],
+                    )
+        except Exception:
+            pass
+
     def list_datasets(self) -> List[DatasetMetadata]:
         return list(self._metadata_cache.values())
 
@@ -107,8 +127,18 @@ class DataService:
         df = self._datasets_cache.get(dataset_id)
         if df is not None:
             return df
-        
-        # If not present in local cache and S3 is enabled, attempt retrieval from S3
+
+        # 1. Check persistent local database
+        try:
+            db_row = db_manager.get_dataset(dataset_id)
+            if db_row and db_row.get("csv_content"):
+                df_db = pd.read_csv(io.StringIO(db_row["csv_content"]))
+                self._datasets_cache[dataset_id] = df_db
+                return df_db
+        except Exception:
+            pass
+
+        # 2. Check S3 if enabled
         if s3_service.is_enabled():
             try:
                 csv_data = s3_service.get_dataset(dataset_id)
@@ -263,7 +293,23 @@ class DataService:
         )
         self._metadata_cache[dataset_id] = meta
 
-        # Optional S3 Cloud Sync (always preserves local cache fallback)
+        # 1. Local relational database persistence (survives container/server reboots)
+        try:
+            db_manager.save_dataset(
+                dataset_id=dataset_id,
+                name=meta.name,
+                description=meta.description,
+                provenance=meta.provenance,
+                created_at=meta.created_at,
+                row_count=meta.row_count,
+                is_sample=False,
+                file_size_bytes=meta.file_size_bytes,
+                csv_content=csv_str,
+            )
+        except Exception:
+            pass
+
+        # 2. Optional S3 Cloud Sync (always preserves local database fallback)
         if s3_service.is_enabled():
             try:
                 meta_dict = meta.model_dump() if hasattr(meta, "model_dump") else meta.dict()

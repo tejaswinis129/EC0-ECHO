@@ -32,10 +32,12 @@ COPY server/app/ ./server/app/
 # Copy compiled frontend SPA assets
 COPY client/dist/ ./client/dist/
 
-# Create non-root unprivileged service user for security best practices
+# Create non-root unprivileged service user and persistent data volume
 RUN useradd -m -u 1000 appuser && \
-    mkdir -p /app/server/app/data && \
-    chown -R appuser:appuser /app
+    mkdir -p /app/server/app/data /app/data && \
+    chown -R appuser:appuser /app /app/data
+
+VOLUME ["/app/data"]
 
 USER appuser
 

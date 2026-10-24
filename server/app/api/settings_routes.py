@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from ..config import settings
-from ..database import DB_FILE
+from ..database import db_manager, DB_FILE
 
 from ..services.s3_service import s3_service
 
@@ -12,6 +12,7 @@ def get_system_status():
     s3_client = s3_service.get_client()
     credentials_detected = has_explicit_keys or (s3_client is not None)
     s3_cfg = s3_service.validate_configuration()
+    db_check = db_manager.check_connection()
     
     s3_status = "Local Filesystem Fallback Active"
     if settings.USE_AWS_S3 and s3_cfg["valid"] and (s3_client is not None):
@@ -24,9 +25,13 @@ def get_system_status():
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
         "database": {
-            "type": "SQLite Local Relational Database",
-            "path": str(DB_FILE),
-            "status": "Connected & Operational"
+            "type": db_check["engine"],
+            "path": db_check["path"],
+            "status": db_check["status"],
+            "healthy": db_check["healthy"],
+            "latency_ms": db_check["latency_ms"],
+            "table_counts": db_check["table_counts"],
+            "journal_mode": db_check["journal_mode"],
         },
         "aws_integrations": {
             "credentials_detected": credentials_detected,

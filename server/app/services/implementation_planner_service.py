@@ -31,6 +31,7 @@ from .evidence_source_service import evidence_source_service
 from .diagram_service import diagram_service
 from ..models.diagram_models import DiagramViewType
 from ..config import settings
+from ..database import db_manager
 
 PLANS_STORAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "saved_plans")
 os.makedirs(PLANS_STORAGE_DIR, exist_ok=True)
@@ -41,18 +42,52 @@ class ImplementationPlannerService:
         self._load_cached_plans()
 
     def _load_cached_plans(self):
-        """Loads saved plans from disk on startup."""
+        """Loads saved plans from persistent relational database and disk cache on startup."""
+        # 1. Load from persistent database
+        try:
+            db_plans = db_manager.list_implementation_plans()
+            for p_meta in db_plans:
+                pid = p_meta["plan_id"]
+                data = db_manager.get_implementation_plan(pid)
+                if data:
+                    try:
+                        plan = ImplementationPlan(**data)
+                        self._cache[plan.plan_id] = plan
+                    except Exception:
+                        pass
+        except Exception as e:
+            print(f"[ImplementationPlannerService] Notice: could not load plans from database: {e}")
+
+        # 2. Check disk storage directory for any offline or preloaded plans
         try:
             if os.path.exists(PLANS_STORAGE_DIR):
                 for fname in os.listdir(PLANS_STORAGE_DIR):
                     if fname.endswith(".json"):
                         fpath = os.path.join(PLANS_STORAGE_DIR, fname)
-                        with open(fpath, "r", encoding="utf-8") as f:
-                            data = json.load(f)
-                            plan = ImplementationPlan(**data)
-                            self._cache[plan.plan_id] = plan
+                        try:
+                            with open(fpath, "r", encoding="utf-8") as f:
+                                data = json.load(f)
+                                plan = ImplementationPlan(**data)
+                                if plan.plan_id not in self._cache:
+                                    self._cache[plan.plan_id] = plan
+                                    primary_cat = plan.classification.primary_category.value if hasattr(plan.classification.primary_category, 'value') else str(plan.classification.primary_category)
+                                    db_manager.save_implementation_plan(
+                                        plan_id=plan.plan_id,
+                                        project_name=plan.project_name,
+                                        created_at=plan.created_at,
+                                        primary_category=primary_cat,
+                                        location=plan.location_or_neighbourhood,
+                                        total_cost=plan.budget.total_estimated_capital_outlay,
+                                        currency=plan.budget.currency,
+                                        completeness_pct=plan.data_completeness_pct,
+                                        fits_budget=plan.budget.fits_within_budget,
+                                        reproducibility_hash=plan.reproducibility_hash,
+                                        data=data
+                                    )
+                        except Exception:
+                            continue
         except Exception as e:
-            print(f"[ImplementationPlannerService] Notice: could not load cached plans: {e}")
+            print(f"[ImplementationPlannerService] Notice: could not load disk cached plans: {e}")
 
     def classify_request(self, req: ImplementationPlanRequest) -> ClassificationResult:
         """
@@ -128,18 +163,39 @@ class ImplementationPlannerService:
                     scores[cat] += 1.0
 
         # Explicit user-selected intervention overrides/boosts
-        if req.intervention_type:
-            itype = req.intervention_type.lower()
-            for cat in InterventionCategory:
-                if cat.value in itype or itype in cat.value:
-                    scores[cat] += 4.0
+        explicit_cat = None
+        if req.intervention_type and req.intervention_type.strip() not in ["", "auto", "auto_detect"]:
+            itype = req.intervention_type.lower().replace("-", "_").strip()
+            type_aliases = {
+                "road_and_pavement": InterventionCategory.ROAD_CONSTRUCTION,
+                "green_roof": InterventionCategory.GREEN_ROOFS,
+                "urban_forestry": InterventionCategory.URBAN_FOREST,
+                "water_supply_distribution": InterventionCategory.WATER_SUPPLY,
+                "solid_waste_facility": InterventionCategory.WASTE_MANAGEMENT,
+                "solar_renewable_energy": InterventionCategory.RENEWABLE_ENERGY,
+                "wastewater_treatment": InterventionCategory.WASTEWATER_SEWAGE,
+                "public_transit_corridor": InterventionCategory.PUBLIC_TRANSPORT,
+                "custom_urban_project": InterventionCategory.OTHER,
+            }
+            if itype in type_aliases:
+                explicit_cat = type_aliases[itype]
+            else:
+                for cat in InterventionCategory:
+                    if cat.value == itype or cat.value in itype or itype in cat.value:
+                        explicit_cat = cat
+                        break
 
         # Sort categories by score
         sorted_cats = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         top_cat, top_score = sorted_cats[0]
 
         is_multi = sum(1 for c, s in sorted_cats if s >= 3.0) >= 2
-        if is_multi:
+
+        if explicit_cat:
+            primary_cat = explicit_cat
+            scores[explicit_cat] += 10.0
+            secondaries = [c for c, s in sorted_cats if c != explicit_cat and s >= 1.5][:3]
+        elif is_multi:
             primary_cat = InterventionCategory.MULTI_INTERVENTION_INTEGRATED
             secondaries = [c for c, s in sorted_cats if s >= 2.0][:3]
         elif top_score >= 1.0:
@@ -427,8 +483,33 @@ class ImplementationPlannerService:
         return plan
 
     def get_plan(self, plan_id: str) -> Optional[ImplementationPlan]:
-        """Retrieves a cached plan by ID."""
-        return self._cache.get(plan_id)
+        """Retrieves a cached plan by ID from memory, persistent database, or disk."""
+        if plan_id in self._cache:
+            return self._cache[plan_id]
+
+        # 1. Check persistent database
+        try:
+            data = db_manager.get_implementation_plan(plan_id)
+            if data:
+                plan = ImplementationPlan(**data)
+                self._cache[plan_id] = plan
+                return plan
+        except Exception:
+            pass
+
+        # 2. Check disk file fallback
+        try:
+            fpath = os.path.join(PLANS_STORAGE_DIR, f"{plan_id}.json")
+            if os.path.exists(fpath):
+                with open(fpath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    plan = ImplementationPlan(**data)
+                    self._cache[plan_id] = plan
+                    return plan
+        except Exception:
+            pass
+
+        return None
 
     def list_plans(self) -> List[Dict[str, Any]]:
         """Returns summary list of all saved implementation plans."""
@@ -723,14 +804,35 @@ Traceable records sourced from municipal portals, master plans, and uploaded DPR
     # =========================================================================
 
     def _persist_plan_to_disk(self, plan: ImplementationPlan):
-        """Persists the plan JSON file and optionally backs it up to S3."""
+        """Persists the plan to the relational database, local JSON file, and optionally backs up to S3."""
         try:
             plan_dict = plan.model_dump() if hasattr(plan, "model_dump") else plan.dict()
+
+            # 1. Relational database persistence (guaranteed to survive restarts)
+            try:
+                primary_cat = plan.classification.primary_category.value if hasattr(plan.classification.primary_category, 'value') else str(plan.classification.primary_category)
+                db_manager.save_implementation_plan(
+                    plan_id=plan.plan_id,
+                    project_name=plan.project_name,
+                    created_at=plan.created_at,
+                    primary_category=primary_cat,
+                    location=plan.location_or_neighbourhood,
+                    total_cost=plan.budget.total_estimated_capital_outlay,
+                    currency=plan.budget.currency,
+                    completeness_pct=plan.data_completeness_pct,
+                    fits_budget=plan.budget.fits_within_budget,
+                    reproducibility_hash=plan.reproducibility_hash,
+                    data=plan_dict
+                )
+            except Exception as dbe:
+                print(f"[ImplementationPlannerService] Notice: database save error for {plan.plan_id}: {dbe}")
+
+            # 2. Local JSON disk cache
             fpath = os.path.join(PLANS_STORAGE_DIR, f"{plan.plan_id}.json")
             with open(fpath, "w", encoding="utf-8") as f:
                 json.dump(plan_dict, f, indent=2)
 
-            # S3 backup if configured
+            # 3. S3 backup if configured
             if settings.USE_AWS_S3:
                 s3_key = f"implementation_plans/{plan.plan_id}.json"
                 s3_service.upload_bytes(

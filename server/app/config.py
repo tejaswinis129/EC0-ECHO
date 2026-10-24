@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     # Persistence
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL",
-        f"sqlite:///{'/tmp/eco_echo.db' if (os.getenv('VERCEL') or os.getenv('AWS_LAMBDA_FUNCTION_NAME')) else (BASE_DIR / 'eco_echo.db')}"
+        f"sqlite:///{'/tmp/eco_echo.db' if (os.getenv('VERCEL') or os.getenv('AWS_LAMBDA_FUNCTION_NAME')) else ('/app/data/eco_echo.db' if Path('/app/data').exists() else (BASE_DIR / 'eco_echo.db'))}"
     )
     
     # AWS Integrations (All optional with automatic local fallbacks)

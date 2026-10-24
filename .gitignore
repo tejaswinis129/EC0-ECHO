@@ -12,6 +12,8 @@ htmlcov/
 
 # Databases & Persistence
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
 server/eco_echo.db
