@@ -35,7 +35,7 @@ allow_all = "*" in cors_origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins if not allow_all else ["*"],
-    allow_origin_regex=r"^https://.*\.onrender\.com$" if not allow_all else None,
+    allow_origin_regex=r"^https://.*(\.sslip\.io|\.nip\.io|\.cloudfront\.net|\.onrender\.com|\.vercel\.app)$" if not allow_all else None,
     allow_credentials=not allow_all,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
