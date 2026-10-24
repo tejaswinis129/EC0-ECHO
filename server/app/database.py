@@ -54,10 +54,16 @@ def get_connection(timeout: float = 30.0) -> sqlite3.Connection:
         timeout=timeout,
         check_same_thread=False
     )
-    # Enable WAL mode for high concurrency across multiple processes/threads
-    conn.execute("PRAGMA journal_mode = WAL;")
-    conn.execute("PRAGMA synchronous = NORMAL;")
+    # Configure busy_timeout FIRST before any PRAGMA so locks are waited on
     conn.execute("PRAGMA busy_timeout = 30000;")
+    try:
+        cur = conn.execute("PRAGMA journal_mode;")
+        mode = cur.fetchone()
+        if not mode or str(mode[0]).upper() != "WAL":
+            conn.execute("PRAGMA journal_mode = WAL;")
+    except sqlite3.OperationalError:
+        pass
+    conn.execute("PRAGMA synchronous = NORMAL;")
     conn.execute("PRAGMA foreign_keys = ON;")
     return conn
 
