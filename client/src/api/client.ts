@@ -21,6 +21,9 @@ import {
   RealWorldEvidenceRecord,
   UploadedDocumentMetadata,
   StructureDiagram,
+  S3ImageUploadResponse,
+  S3ObjectVerificationResponse,
+  S3ImagesResponse,
 } from "../types";
 
 const rawApiBase = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || "").trim();
@@ -276,4 +279,44 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+
+  // 13. Amazon S3 Live Demonstration
+  uploadImageToS3: async (file: File, description?: string): Promise<S3ImageUploadResponse> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (description) formData.append("description", description);
+    const res = await fetch(`${API_BASE}/s3/upload-image`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) {
+      let errMsg = `Image upload failed (${res.status})`;
+      try {
+        const err = await res.json();
+        errMsg = err.detail || errMsg;
+      } catch {}
+      throw new Error(errMsg);
+    }
+    return (await res.json()) as S3ImageUploadResponse;
+  },
+
+  verifyS3Object: async (key: string): Promise<S3ObjectVerificationResponse> => {
+    const res = await fetch(`${API_BASE}/s3/verify-object?key=${encodeURIComponent(key)}`);
+    if (!res.ok) {
+      let errMsg = `S3 verification failed (${res.status})`;
+      try {
+        const err = await res.json();
+        errMsg = err.detail || errMsg;
+      } catch {}
+      throw new Error(errMsg);
+    }
+    return (await res.json()) as S3ObjectVerificationResponse;
+  },
+
+  listS3Images: (limit = 25): Promise<S3ImagesResponse> =>
+    request<S3ImagesResponse>(`/s3/images?limit=${limit}`),
+
+  getS3ImageStreamUrl: (key: string): string =>
+    `${API_BASE}/s3/image-stream?key=${encodeURIComponent(key)}`,
 };
+

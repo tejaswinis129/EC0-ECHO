@@ -334,3 +334,109 @@ def test_api_test_upload_route_mocked_success():
         assert "diagnostics/ping-" in data["s3_uri"]
         mock_s3_client.delete_object.assert_called_once()
 
+
+# ----------------------------------------------------------------------
+# 7. S3 Live Image Upload & Verification Tests
+# ----------------------------------------------------------------------
+
+# Minimal valid 1x1 PNG bytes
+VALID_PNG_BYTES = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+# Minimal valid JPEG bytes
+VALID_JPEG_BYTES = (
+    b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00`\x00`\x00\x00\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xbf\x00\xff\xd9"
+)
+
+
+def test_upload_image_mocked_success():
+    mock_s3_client = MagicMock()
+    mock_s3_client.put_object.return_value = {"ETag": '"abc123etag"'}
+    mock_s3_client.head_object.return_value = {
+        "ETag": '"abc123etag"',
+        "ContentLength": len(VALID_PNG_BYTES),
+        "ContentType": "image/png",
+        "ServerSideEncryption": "AES256",
+        "StorageClass": "STANDARD",
+        "LastModified": "2026-10-24T05:30:00Z",
+    }
+
+    with patch.object(settings, "USE_AWS_S3", True), \
+         patch.object(settings, "AWS_S3_BUCKET", "eco-echo-sustainability-data-2026"), \
+         patch.object(settings, "AWS_REGION", "ap-south-1"), \
+         patch("server.app.services.s3_service.s3_service.get_client", return_value=mock_s3_client):
+
+        files = {"file": ("site_inspection.png", io.BytesIO(VALID_PNG_BYTES), "image/png")}
+        data = {"description": "Bengaluru stormwater site verification"}
+        resp = client.post("/api/s3/upload-image", files=files, data=data)
+
+        assert resp.status_code == 200, resp.text
+        res_data = resp.json()
+        assert res_data["success"] is True
+        assert "evidence_images/" in res_data["s3_key"]
+        assert res_data["s3_key"].endswith(".png")
+        assert res_data["bucket"] == "eco-echo-sustainability-data-2026"
+        assert res_data["region"] == "ap-south-1"
+        assert res_data["content_type"] == "image/png"
+        assert res_data["server_side_encryption"] == "AES256"
+        assert res_data["verified_in_s3"] is True
+        assert res_data["etag"] == "abc123etag"
+
+        # Verify put_object was called with AES256 encryption
+        mock_s3_client.put_object.assert_called_once()
+        put_kwargs = mock_s3_client.put_object.call_args[1]
+        assert put_kwargs["Bucket"] == "eco-echo-sustainability-data-2026"
+        assert put_kwargs["ServerSideEncryption"] == "AES256"
+        assert put_kwargs["ContentType"] == "image/png"
+
+
+def test_upload_image_disallowed_extension():
+    files = {"file": ("malicious.exe", io.BytesIO(b"MZ..."), "application/octet-stream")}
+    with patch.object(settings, "USE_AWS_S3", True):
+        resp = client.post("/api/s3/upload-image", files=files)
+        assert resp.status_code == 400
+        assert "Unsupported file format" in resp.text
+
+
+def test_upload_image_invalid_magic_signature():
+    # File named .png but with plain text bytes
+    files = {"file": ("fake_image.png", io.BytesIO(b"Not a real image"), "image/png")}
+    with patch.object(settings, "USE_AWS_S3", True):
+        resp = client.post("/api/s3/upload-image", files=files)
+        assert resp.status_code == 400
+        assert "binary signature" in resp.text
+
+
+def test_verify_s3_object_mocked_success():
+    mock_s3_client = MagicMock()
+    mock_s3_client.head_object.return_value = {
+        "ETag": '"etag999"',
+        "ContentLength": 10240,
+        "ContentType": "image/jpeg",
+        "ServerSideEncryption": "AES256",
+        "StorageClass": "STANDARD",
+        "LastModified": "2026-10-24T05:35:00Z",
+    }
+
+    with patch.object(settings, "USE_AWS_S3", True), \
+         patch.object(settings, "AWS_S3_BUCKET", "eco-echo-sustainability-data-2026"), \
+         patch.object(settings, "AWS_REGION", "ap-south-1"), \
+         patch("server.app.services.s3_service.s3_service.get_client", return_value=mock_s3_client):
+
+        resp = client.get("/api/s3/verify-object?key=evidence_images/test_image.jpg")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["verified_in_s3"] is True
+        assert data["bucket"] == "eco-echo-sustainability-data-2026"
+        assert data["key"] == "evidence_images/test_image.jpg"
+        assert data["etag"] == "etag999"
+        assert data["server_side_encryption"] == "AES256"
+
+
+def test_verify_s3_object_path_traversal_rejection():
+    resp = client.get("/api/s3/verify-object?key=../../etc/passwd")
+    assert resp.status_code == 400
+
+

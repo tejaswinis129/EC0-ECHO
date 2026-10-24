@@ -2,7 +2,7 @@ import os
 import re
 import json
 import logging
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 import boto3
 from botocore.exceptions import (
     ClientError,
@@ -475,6 +475,64 @@ class S3Service:
         except Exception as e:
             logger.warning("Failed to retrieve bytes from s3://%s/%s: %s", bucket, key, str(e))
             return None
+
+    def head_file(self, key: str) -> Optional[Dict[str, Any]]:
+        """
+        Checks if an object exists in S3 and returns its metadata headers.
+        Returns dict with ContentLength, ContentType, ETag, LastModified, ServerSideEncryption, etc.
+        Returns None if not found or on error.
+        """
+        if not self.is_enabled():
+            return None
+
+        client = self.get_client()
+        if client is None:
+            return None
+
+        bucket = settings.AWS_S3_BUCKET
+        try:
+            return client.head_object(Bucket=bucket, Key=key)
+        except ClientError as e:
+            code = e.response.get("Error", {}).get("Code")
+            if code not in ("NoSuchKey", "404"):
+                logger.warning("ClientError in head_file for s3://%s/%s: %s", bucket, key, str(e))
+            return None
+        except Exception as e:
+            logger.warning("Error in head_file for s3://%s/%s: %s", bucket, key, str(e))
+            return None
+
+    def list_objects(self, prefix: str = "", max_keys: int = 50) -> List[Dict[str, Any]]:
+        """
+        Lists objects under a given prefix in the configured S3 bucket.
+        Returns a list of dicts with key, size_bytes, size_kb, last_modified, etag, storage_class.
+        """
+        if not self.is_enabled():
+            return []
+
+        client = self.get_client()
+        if client is None:
+            return []
+
+        bucket = settings.AWS_S3_BUCKET
+        try:
+            res = client.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=max_keys)
+            items = []
+            for obj in res.get("Contents", []):
+                last_mod = obj["LastModified"]
+                iso_mod = last_mod.isoformat() if hasattr(last_mod, "isoformat") else str(last_mod)
+                items.append({
+                    "key": obj["Key"],
+                    "size_bytes": obj["Size"],
+                    "size_kb": round(obj["Size"] / 1024, 2),
+                    "last_modified": iso_mod,
+                    "etag": obj.get("ETag", "").strip('"'),
+                    "storage_class": obj.get("StorageClass", "STANDARD"),
+                })
+            items.sort(key=lambda x: x["last_modified"], reverse=True)
+            return items
+        except Exception as e:
+            logger.warning("list_objects failed for s3://%s/%s: %s", bucket, prefix, str(e))
+            return []
 
 
 s3_service = S3Service()

@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { DatasetMetadata, ValidationReport, DatasetSummary } from "../types";
+import {
+  DatasetMetadata,
+  ValidationReport,
+  DatasetSummary,
+  S3ImageUploadResponse,
+  S3ObjectVerificationResponse,
+  S3ImageListItem,
+} from "../types";
 import { api } from "../api/client";
 import {
   UploadCloud,
@@ -11,6 +18,9 @@ import {
   RefreshCw,
   Info,
   ShieldCheck,
+  Image as ImageIcon,
+  Cloud,
+  Lock,
 } from "lucide-react";
 
 interface DataExplorerPageProps {
@@ -33,8 +43,21 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
   const [uploadStatus, setUploadStatus] = useState<{ type: "info" | "success" | "error"; message: string } | null>(null);
 
+  // Amazon S3 Image Upload & Live Demonstration State
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [imageDescription, setImageDescription] = useState<string>("");
+  const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
+  const [imageUploadResult, setImageUploadResult] = useState<S3ImageUploadResponse | null>(null);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const [isVerifyingS3, setIsVerifyingS3] = useState<boolean>(false);
+  const [verifiedObjectData, setVerifiedObjectData] = useState<S3ObjectVerificationResponse | null>(null);
+  const [s3ImagesList, setS3ImagesList] = useState<S3ImageListItem[]>([]);
+  const [isLoadingS3Images, setIsLoadingS3Images] = useState<boolean>(false);
+
   useEffect(() => {
     loadDatasetList();
+    loadS3ImagesList();
   }, []);
 
   useEffect(() => {
@@ -103,6 +126,78 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({
       setUploadStatus({ type: "error", message: `Registration failed: ${err.message}` });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleImageFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageUploadError(null);
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (!ext || !["jpg", "jpeg", "png"].includes(ext)) {
+        setImageUploadError("Unsupported format. Please select a JPG, JPEG, or PNG image.");
+        setSelectedImageFile(null);
+        setImagePreviewUrl(null);
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setImageUploadError(`File exceeds 10MB limit (${(file.size / (1024 * 1024)).toFixed(2)} MB).`);
+        setSelectedImageFile(null);
+        setImagePreviewUrl(null);
+        return;
+      }
+      setSelectedImageFile(file);
+      setImagePreviewUrl(URL.createObjectURL(file));
+      setImageUploadResult(null);
+      setVerifiedObjectData(null);
+    }
+  };
+
+  const resetImageSelection = () => {
+    setSelectedImageFile(null);
+    setImagePreviewUrl(null);
+    setImageDescription("");
+    setImageUploadError(null);
+    setImageUploadResult(null);
+    setVerifiedObjectData(null);
+  };
+
+  const handleImageUploadSubmit = async () => {
+    if (!selectedImageFile) return;
+    setIsUploadingImage(true);
+    setImageUploadError(null);
+    try {
+      const res = await api.uploadImageToS3(selectedImageFile, imageDescription);
+      setImageUploadResult(res);
+      await loadS3ImagesList();
+    } catch (err: any) {
+      setImageUploadError(err.message || "Failed to upload image to Amazon S3.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleVerifyObjectInS3 = async (key: string) => {
+    setIsVerifyingS3(true);
+    try {
+      const res = await api.verifyS3Object(key);
+      setVerifiedObjectData(res);
+    } catch (err: any) {
+      setImageUploadError(err.message || "Failed to verify object in Amazon S3.");
+    } finally {
+      setIsVerifyingS3(false);
+    }
+  };
+
+  const loadS3ImagesList = async () => {
+    setIsLoadingS3Images(true);
+    try {
+      const res = await api.listS3Images(25);
+      setS3ImagesList(res.images || []);
+    } catch {
+      // S3 images list optional silently falls back
+    } finally {
+      setIsLoadingS3Images(false);
     }
   };
 
@@ -341,6 +436,315 @@ export const DataExplorerPage: React.FC<DataExplorerPageProps> = ({
             )}
           </div>
         </div>
+      </div>
+
+      {/* Amazon S3 Image Upload & Live Demonstration Section */}
+      <div
+        className="card"
+        style={{
+          marginBottom: "24px",
+          border: "1px solid #c2decb",
+          background: "linear-gradient(180deg, #fdfbf7 0%, #ffffff 100%)",
+        }}
+      >
+        <div className="card-header">
+          <div className="card-title-group">
+            <ImageIcon size={20} color="var(--forest-green)" />
+            <div>
+              <div className="card-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span>Upload Image to Amazon S3</span>
+                <span className="badge badge-green" style={{ fontSize: "11px", fontWeight: 600 }}>
+                  Live AWS Demonstration
+                </span>
+              </div>
+              <div className="card-subtitle">
+                Direct multipart upload of site photos & visual evidence to Amazon S3 (<code>eco-echo-sustainability-data-2026</code>) with empirical object verification.
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+            <span className="badge badge-neutral" style={{ fontSize: "11px" }}>
+              <Lock size={11} style={{ marginRight: "4px", verticalAlign: "middle" }} />
+              Private • AES256
+            </span>
+            <span className="badge badge-neutral" style={{ fontSize: "11px" }}>
+              Region: ap-south-1
+            </span>
+          </div>
+        </div>
+
+        <div className="grid-split-2-1" style={{ alignItems: "start", marginBottom: 0 }}>
+          {/* Left Column: Upload Controls */}
+          <div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontWeight: 600 }}>
+                Select Image File (JPG, JPEG, or PNG)
+              </label>
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                onChange={handleImageFileSelect}
+                className="form-control"
+                style={{ padding: "8px 10px", background: "var(--white)" }}
+              />
+              <div style={{ fontSize: "11.5px", color: "var(--text-secondary)", marginTop: "4px" }}>
+                Accepted extensions: <strong>.jpg, .jpeg, .png</strong> • Max size: <strong>10 MB</strong> • Private bucket encrypted with AES256.
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: "16px" }}>
+              <label className="form-label">Photo Description / Evidence Note (Optional)</label>
+              <input
+                type="text"
+                placeholder="e.g. Koramangala SWD concrete retaining wall inspection photo"
+                value={imageDescription}
+                onChange={(e) => setImageDescription(e.target.value)}
+                className="form-control"
+              />
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+              <button
+                className="btn btn-primary"
+                onClick={handleImageUploadSubmit}
+                disabled={!selectedImageFile || isUploadingImage}
+                style={{ display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                <Cloud size={15} />
+                <span>{isUploadingImage ? "Uploading to Amazon S3..." : "Upload Image to S3"}</span>
+              </button>
+
+              {selectedImageFile && (
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={resetImageSelection}
+                  disabled={isUploadingImage}
+                >
+                  Clear Selection
+                </button>
+              )}
+            </div>
+
+            {/* Error Message */}
+            {imageUploadError && (
+              <div
+                style={{
+                  marginTop: "14px",
+                  padding: "12px 14px",
+                  borderRadius: "var(--radius-button)",
+                  background: "var(--risk-severe-bg)",
+                  border: "1px solid #f3cbc8",
+                  color: "var(--risk-severe)",
+                  fontSize: "12.5px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <AlertTriangle size={16} />
+                <span>{imageUploadError}</span>
+              </div>
+            )}
+
+            {/* Success Upload Card */}
+            {imageUploadResult && (
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "16px",
+                  borderRadius: "var(--radius-card)",
+                  background: "var(--risk-moderate-bg)",
+                  border: "1px solid #c2decb",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                  <CheckCircle2 size={18} color="var(--risk-moderate)" />
+                  <strong style={{ color: "var(--risk-moderate)", fontSize: "14px" }}>
+                    Uploaded & Verified in Amazon S3
+                  </strong>
+                </div>
+
+                <div style={{ fontSize: "12px", color: "var(--text-primary)", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div>
+                    <strong>S3 Object Key:</strong>{" "}
+                    <code style={{ background: "rgba(255,255,255,0.8)", padding: "2px 6px", borderRadius: "4px" }}>
+                      {imageUploadResult.s3_key}
+                    </code>
+                  </div>
+                  <div>
+                    <strong>S3 URI:</strong>{" "}
+                    <code style={{ background: "rgba(255,255,255,0.8)", padding: "2px 6px", borderRadius: "4px" }}>
+                      {imageUploadResult.s3_uri}
+                    </code>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginTop: "4px" }}>
+                    <div><strong>Bucket:</strong> {imageUploadResult.bucket}</div>
+                    <div><strong>Region:</strong> {imageUploadResult.region}</div>
+                    <div><strong>File Size:</strong> {imageUploadResult.size_kb} KB ({imageUploadResult.size_bytes.toLocaleString()} bytes)</div>
+                    <div><strong>Content-Type:</strong> {imageUploadResult.content_type}</div>
+                    <div><strong>ETag (MD5):</strong> <code>{imageUploadResult.etag}</code></div>
+                    <div><strong>Encryption:</strong> {imageUploadResult.server_side_encryption}</div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: "12px", display: "flex", gap: "8px" }}>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleVerifyObjectInS3(imageUploadResult.s3_key)}
+                    disabled={isVerifyingS3}
+                  >
+                    <ShieldCheck size={13} />
+                    <span>{isVerifyingS3 ? "Querying S3..." : "Verify Object Directly in S3 (head_object)"}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Live Image Preview & Direct S3 Verification Details */}
+          <div>
+            {imageUploadResult ? (
+              <div
+                style={{
+                  background: "var(--white)",
+                  border: "1px solid var(--border-subtle)",
+                  borderRadius: "var(--radius-card)",
+                  padding: "16px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: "8px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>S3 Image Stream</span>
+                  <span className="badge badge-water" style={{ fontSize: "10.5px" }}>Streamed from Private S3</span>
+                </div>
+                <div style={{ maxHeight: "200px", overflow: "hidden", borderRadius: "6px", border: "1px solid var(--border-subtle)", background: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <img
+                    src={api.getS3ImageStreamUrl(imageUploadResult.s3_key)}
+                    alt={imageUploadResult.filename}
+                    style={{ maxWidth: "100%", maxHeight: "200px", objectFit: "contain" }}
+                  />
+                </div>
+                <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginTop: "6px" }}>
+                  File: {imageUploadResult.filename} • Upload latency: {imageUploadResult.upload_latency_ms} ms
+                </div>
+
+                {verifiedObjectData && (
+                  <div
+                    style={{
+                      marginTop: "12px",
+                      textAlign: "left",
+                      padding: "10px 12px",
+                      background: "var(--warm-ivory)",
+                      borderRadius: "6px",
+                      border: "1px solid var(--border-subtle)",
+                      fontSize: "11px",
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, color: "var(--forest-green)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
+                      <CheckCircle2 size={13} /> S3 Object Confirmed Active (HTTP 200 head_object)
+                    </div>
+                    <div><strong>Last Modified:</strong> {verifiedObjectData.last_modified}</div>
+                    <div><strong>Storage Class:</strong> {verifiedObjectData.storage_class}</div>
+                    <div><strong>ETag Checksum:</strong> <code>{verifiedObjectData.etag}</code></div>
+                  </div>
+                )}
+              </div>
+            ) : imagePreviewUrl ? (
+              <div
+                style={{
+                  background: "var(--white)",
+                  border: "1px solid var(--border-subtle)",
+                  borderRadius: "var(--radius-card)",
+                  padding: "16px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: "8px", color: "var(--text-primary)" }}>
+                  Local Preview (Ready to Upload)
+                </div>
+                <div style={{ maxHeight: "180px", overflow: "hidden", borderRadius: "6px", border: "1px solid var(--border-subtle)", background: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <img
+                    src={imagePreviewUrl}
+                    alt="Preview"
+                    style={{ maxWidth: "100%", maxHeight: "180px", objectFit: "contain" }}
+                  />
+                </div>
+                <div style={{ fontSize: "11.5px", color: "var(--text-secondary)", marginTop: "6px" }}>
+                  {selectedImageFile?.name} ({(selectedImageFile ? selectedImageFile.size / 1024 : 0).toFixed(1)} KB)
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  background: "var(--warm-ivory)",
+                  border: "1px dashed var(--border-strong)",
+                  borderRadius: "var(--radius-button)",
+                  padding: "20px",
+                  fontSize: "12px",
+                  color: "var(--text-secondary)",
+                  lineHeight: 1.5,
+                }}
+              >
+                <div style={{ fontWeight: 700, color: "var(--text-primary)", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <ShieldCheck size={16} color="var(--forest-green)" />
+                  Amazon S3 Integration Architecture:
+                </div>
+                <ul style={{ margin: 0, paddingLeft: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <li>Direct authenticated upload to AWS S3 bucket in <code>ap-south-1</code>.</li>
+                  <li>AES256 server-side encryption enforced on all objects.</li>
+                  <li>Private ACL with zero public bucket exposure.</li>
+                  <li>Real-time S3 <code>head_object</code> roundtrip verification proving physical S3 existence.</li>
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent S3 Uploaded Images List for Demo */}
+        {s3ImagesList.length > 0 && (
+          <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: "1px solid var(--border-subtle)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-primary)" }}>
+                Recent Images in S3 Bucket (<code>evidence_images/</code>):
+              </div>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={loadS3ImagesList}
+                disabled={isLoadingS3Images}
+                style={{ fontSize: "11px", padding: "3px 8px" }}
+              >
+                <RefreshCw size={11} />
+                <span>Refresh S3 Objects</span>
+              </button>
+            </div>
+            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "6px" }}>
+              {s3ImagesList.slice(0, 6).map((img, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => handleVerifyObjectInS3(img.key)}
+                  style={{
+                    border: "1px solid var(--border-subtle)",
+                    borderRadius: "6px",
+                    padding: "6px 10px",
+                    background: "var(--white)",
+                    fontSize: "11px",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                  }}
+                  title="Click to verify in S3"
+                >
+                  <div style={{ fontWeight: 600, color: "var(--forest-green)" }}>
+                    {img.key.replace("evidence_images/", "")}
+                  </div>
+                  <div style={{ color: "var(--text-secondary)", fontSize: "10px" }}>
+                    {img.size_kb} KB • {img.last_modified.split("T")[0]}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tabular Data Preview */}

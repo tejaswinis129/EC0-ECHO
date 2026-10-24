@@ -709,3 +709,61 @@ export interface StructureDiagram {
   generated_at: string;
 }
 
+// ============================================================================
+// Amazon S3 Image Demonstration Types
+// ============================================================================
+
+export interface S3ImageUploadResponse {
+  success: boolean;
+  message: string;
+  s3_key: string;
+  s3_uri: string;
+  bucket: string;
+  region: string;
+  filename: string;
+  content_type: string;
+  size_bytes: number;
+  size_kb: number;
+  etag: string;
+  last_modified: string;
+  server_side_encryption: string;
+  storage_class: string;
+  upload_latency_ms: number;
+  verified_in_s3: boolean;
+  uploaded_at: string;
+  description?: string;
+}
+
+export interface S3ObjectVerificationResponse {
+  exists: boolean;
+  verified_in_s3: boolean;
+  bucket: string;
+  region: string;
+  key: string;
+  s3_uri: string;
+  content_length: number;
+  content_length_kb: number;
+  content_type: string;
+  etag: string;
+  last_modified: string;
+  server_side_encryption: string;
+  storage_class: string;
+  metadata?: Record<string, string>;
+}
+
+export interface S3ImageListItem {
+  key: string;
+  size_bytes: number;
+  size_kb: number;
+  last_modified: string;
+  etag: string;
+  storage_class: string;
+}
+
+export interface S3ImagesResponse {
+  bucket: string;
+  region: string;
+  count: number;
+  images: S3ImageListItem[];
+}
+
