@@ -6,7 +6,9 @@
 [![Solver: SciPy HiGHS](https://img.shields.io/badge/Solver-SciPy_HiGHS-047857.svg)](https://scipy.org/)
 [![Audit: Verified](https://img.shields.io/badge/Security_Audit-Passed-059669.svg)](SECURITY_AUDIT.md)
 
-**GitHub Repository:** [https://github.com/tejaswinis129/EC0-ECHO](https://github.com/tejaswinis129/EC0-ECHO)
+**GitHub Repository:** [https://github.com/tejaswinis129/EC0-ECHO](https://github.com/tejaswinis129/EC0-ECHO)  
+**Live Deployment (HTTPS):** [https://3.110.42.213.sslip.io/](https://3.110.42.213.sslip.io/)  
+**Live Backend API:** [https://3.110.42.213.sslip.io/api](https://3.110.42.213.sslip.io/api)
 
 ---
 

@@ -1,6 +1,8 @@
 # ECO-ECHO API Reference Documentation
 
-Base URL: `http://localhost:8000/api`
+- **Production HTTPS Base URL:** `https://3.110.42.213.sslip.io/api`
+- **Production HTTP Fallback:** `http://3.110.42.213/api`
+- **Local Development Base URL:** `http://localhost:8000/api`
 
 ---
 

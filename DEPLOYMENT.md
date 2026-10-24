@@ -4,7 +4,29 @@ This guide details how to build, containerize, and deploy the complete **ECO-ECH
 
 ---
 
-## 1. Architecture Overview for Deployment
+## 1. Live Production Deployment on AWS EC2 (Current Production)
+
+ECO-ECHO is deployed in production on an **Amazon EC2** instance in `ap-south-1` (Mumbai) fronted by an automated **Caddy TLS reverse proxy**:
+
+| Service / View | Protocol | Production Endpoint | Verified Status |
+| :--- | :---: | :--- | :---: |
+| **Secure Web Frontend SPA** | **HTTPS** | **[https://3.110.42.213.sslip.io/](https://3.110.42.213.sslip.io/)** | **`200 OK` (Strict TLS)** |
+| **Secure Backend API Base** | **HTTPS** | **[https://3.110.42.213.sslip.io/api](https://3.110.42.213.sslip.io/api)** | **`200 OK`** |
+| **System Health Check** | **HTTPS** | **[https://3.110.42.213.sslip.io/api/health](https://3.110.42.213.sslip.io/api/health)** | **`200 OK`** |
+| **Settings & DB Diagnostics** | **HTTPS** | **[https://3.110.42.213.sslip.io/api/settings/status](https://3.110.42.213.sslip.io/api/settings/status)** | **`200 OK` (`WAL Mode`)** |
+| **Implementation Planner API**| **HTTPS** | **[https://3.110.42.213.sslip.io/api/planner/plans](https://3.110.42.213.sslip.io/api/planner/plans)** | **`200 OK`** |
+| **Legacy Direct HTTP URL** | HTTP | [http://3.110.42.213/](http://3.110.42.213/) | `200 OK` |
+
+### Production Architecture on EC2:
+- **Server:** AWS EC2 `t3.micro` (`i-04a3958b5664f9576`, IP: `3.110.42.213`, Region: `ap-south-1`).
+- **TLS Reverse Proxy:** `caddy:alpine` on host network ports `80` & `443` managing Let's Encrypt certificates automatically for `3.110.42.213.sslip.io`.
+- **Backend Service:** Multi-stage production container `eco-echo-backend` on port `8000` executing FastAPI with Uvicorn workers.
+- **Persistence:** Host directory `/var/data/eco-echo` bind-mounted to `/app/data` with SQLite in WAL mode (`PRAGMA journal_mode = WAL; busy_timeout = 30000;`).
+- **ECR Repository:** `931238251287.dkr.ecr.ap-south-1.amazonaws.com/eco-echo-backend`.
+
+---
+
+## 2. Architecture Overview for Deployment
 
 ECO-ECHO is packaged as a **single-container full-stack application**:
 - **Frontend SPA**: React 19 + TypeScript + Vite, compiled into `client/dist`.
