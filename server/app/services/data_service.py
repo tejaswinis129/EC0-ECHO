@@ -118,10 +118,49 @@ class DataService:
             pass
 
     def list_datasets(self) -> List[DatasetMetadata]:
+        # Sync with database so all uvicorn workers see newly uploaded datasets immediately
+        try:
+            persisted_list = db_manager.list_datasets()
+            for p in persisted_list:
+                pid = p["dataset_id"]
+                if pid not in self._metadata_cache:
+                    self._metadata_cache[pid] = DatasetMetadata(
+                        dataset_id=pid,
+                        name=p["name"],
+                        description=p.get("description") or "Municipal urban sustainability dataset.",
+                        provenance=p.get("provenance") or "User uploaded dataset.",
+                        created_at=p.get("created_at") or "",
+                        row_count=p.get("row_count", 0),
+                        is_sample=bool(p.get("is_sample", False)),
+                        file_size_bytes=p.get("file_size_bytes", 0),
+                    )
+        except Exception:
+            pass
         return list(self._metadata_cache.values())
 
     def get_dataset_metadata(self, dataset_id: str) -> Optional[DatasetMetadata]:
-        return self._metadata_cache.get(dataset_id)
+        meta = self._metadata_cache.get(dataset_id)
+        if meta is not None:
+            return meta
+        # Check database across worker processes
+        try:
+            p = db_manager.get_dataset(dataset_id)
+            if p:
+                meta = DatasetMetadata(
+                    dataset_id=p["dataset_id"],
+                    name=p["name"],
+                    description=p.get("description") or "Municipal urban sustainability dataset.",
+                    provenance=p.get("provenance") or "User uploaded dataset.",
+                    created_at=p.get("created_at") or "",
+                    row_count=p.get("row_count", 0),
+                    is_sample=bool(p.get("is_sample", False)),
+                    file_size_bytes=p.get("file_size_bytes", 0),
+                )
+                self._metadata_cache[dataset_id] = meta
+                return meta
+        except Exception:
+            pass
+        return None
 
     def get_dataset(self, dataset_id: str) -> Optional[pd.DataFrame]:
         df = self._datasets_cache.get(dataset_id)
